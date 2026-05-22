@@ -79,6 +79,7 @@ const state = {
   activeCategory: "all",
   searchQuery: "",
   mistakeMode: false,
+  preferredVoiceURI: "",
   answerVisible: false,
   favoriteIds: new Set(),
   masteredIds: new Set(),
@@ -88,6 +89,7 @@ const state = {
 const elements = {
   searchInput: document.getElementById("searchInput"),
   categoryFilter: document.getElementById("categoryFilter"),
+  voiceSelect: document.getElementById("voiceSelect"),
   mistakeModeButton: document.getElementById("mistakeModeButton"),
   randomButton: document.getElementById("randomButton"),
   questionCount: document.getElementById("questionCount"),
@@ -110,6 +112,7 @@ async function init() {
   state.selectedId = state.questions[0]?.id ?? null;
   bindEvents();
   renderCategories();
+  renderVoices();
   render();
 }
 
@@ -142,6 +145,16 @@ function bindEvents() {
     updateSelectionForFilteredQuestions();
     render();
   });
+
+  elements.voiceSelect.addEventListener("change", () => {
+    state.preferredVoiceURI = elements.voiceSelect.value;
+    saveState();
+    stopSpeaking();
+  });
+
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.addEventListener("voiceschanged", renderVoices);
+  }
 
   elements.randomButton.addEventListener("click", () => {
     selectRandomQuestion();
@@ -189,6 +202,7 @@ function loadSavedState() {
     const savedState = JSON.parse(rawValue);
     state.favoriteIds = new Set(savedState.favoriteIds ?? []);
     state.masteredIds = new Set(savedState.masteredIds ?? []);
+    state.preferredVoiceURI = savedState.preferredVoiceURI ?? "";
   } catch (error) {
     console.warn("Ignoring invalid saved interview coach state.", error);
   }
@@ -197,7 +211,8 @@ function loadSavedState() {
 function saveState() {
   const value = {
     favoriteIds: Array.from(state.favoriteIds),
-    masteredIds: Array.from(state.masteredIds)
+    masteredIds: Array.from(state.masteredIds),
+    preferredVoiceURI: state.preferredVoiceURI
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
 }
@@ -209,6 +224,34 @@ function renderCategories() {
     ...categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`)
   ];
   elements.categoryFilter.innerHTML = options.join("");
+}
+
+function renderVoices() {
+  if (!("speechSynthesis" in window)) {
+    elements.voiceSelect.innerHTML = '<option value="">当前浏览器不支持</option>';
+    elements.voiceSelect.disabled = true;
+    return;
+  }
+
+  const voices = getAnswerVoices();
+  if (voices.length === 0) {
+    elements.voiceSelect.innerHTML = '<option value="">加载声音中</option>';
+    elements.voiceSelect.disabled = true;
+    return;
+  }
+
+  const bestVoice = getBestVoice(voices);
+  const autoLabel = bestVoice ? `自动推荐：${voiceLabel(bestVoice)}` : "自动推荐";
+  const options = [
+    `<option value="">${escapeHtml(autoLabel)}</option>`,
+    ...voices.map((voice) => {
+      const selected = voice.voiceURI === state.preferredVoiceURI ? " selected" : "";
+      return `<option value="${escapeHtml(voice.voiceURI)}"${selected}>${escapeHtml(voiceLabel(voice))}</option>`;
+    })
+  ];
+
+  elements.voiceSelect.innerHTML = options.join("");
+  elements.voiceSelect.disabled = false;
 }
 
 function render() {
@@ -339,6 +382,70 @@ function selectRandomQuestion() {
   render();
 }
 
+function getAnswerVoices() {
+  const voices = window.speechSynthesis.getVoices();
+  const chineseVoices = voices.filter((voice) => {
+    const lang = voice.lang.toLowerCase();
+    const name = voice.name.toLowerCase();
+    return lang.startsWith("zh") || name.includes("chinese") || name.includes("mandarin");
+  });
+
+  return (chineseVoices.length > 0 ? chineseVoices : voices)
+    .slice()
+    .sort((left, right) => scoreVoice(right) - scoreVoice(left) || voiceLabel(left).localeCompare(voiceLabel(right)));
+}
+
+function getSpeechVoice() {
+  const voices = getAnswerVoices();
+  if (state.preferredVoiceURI) {
+    return voices.find((voice) => voice.voiceURI === state.preferredVoiceURI) ?? getBestVoice(voices);
+  }
+  return getBestVoice(voices);
+}
+
+function getBestVoice(voices) {
+  return voices.reduce((bestVoice, voice) => {
+    if (!bestVoice || scoreVoice(voice) > scoreVoice(bestVoice)) {
+      return voice;
+    }
+    return bestVoice;
+  }, null);
+}
+
+function scoreVoice(voice) {
+  const lang = voice.lang.toLowerCase();
+  const name = voice.name.toLowerCase();
+  let score = 0;
+
+  if (lang === "zh-cn" || lang === "cmn-cn") {
+    score += 80;
+  } else if (lang.startsWith("zh") || lang.startsWith("cmn")) {
+    score += 60;
+  }
+
+  if (name.includes("natural") || name.includes("neural") || name.includes("online")) {
+    score += 35;
+  }
+  if (name.includes("premium") || name.includes("enhanced")) {
+    score += 20;
+  }
+  if (["xiaoxiao", "yunxi", "yunyang", "xiaoyi", "xiaobei"].some((hint) => name.includes(hint))) {
+    score += 25;
+  }
+  if (["tingting", "mei-jia", "meijia", "sin-ji", "yu-shu", "shelley"].some((hint) => name.includes(hint))) {
+    score += 18;
+  }
+  if (voice.localService) {
+    score += 5;
+  }
+
+  return score;
+}
+
+function voiceLabel(voice) {
+  return `${voice.name} (${voice.lang || "未知"})`;
+}
+
 function getQuestionSearchText(question) {
   return [
     question.question,
@@ -371,8 +478,13 @@ function speakAnswer(question) {
 
   stopSpeaking();
   const utterance = new SpeechSynthesisUtterance(question.answer);
-  utterance.lang = "zh-CN";
-  utterance.rate = 0.95;
+  const voice = getSpeechVoice();
+  if (voice) {
+    utterance.voice = voice;
+  }
+  utterance.lang = voice?.lang || "zh-CN";
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
   utterance.onend = () => {
     state.speakingId = null;
     elements.speakButton.textContent = "朗读答案";
