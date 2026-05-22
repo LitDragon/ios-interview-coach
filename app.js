@@ -6,6 +6,7 @@ const fallbackQuestions = [
     category: "Runtime",
     level: "medium",
     question: "Objective-C 的消息发送流程是什么？",
+    audio: "audio/ios-runtime-001.mp3",
     answer: "Objective-C 调用方法时会编译成 objc_msgSend(receiver, selector, ...)。运行时先根据对象的 isa 找到类，再从方法缓存查找 IMP；缓存未命中时沿类的方法列表和父类链查找。找到后会把 IMP 写入缓存并调用。找不到时进入动态方法解析、消息转发快速流程和完整转发流程，最后仍无法处理才触发 doesNotRecognizeSelector。"
   },
   {
@@ -13,6 +14,7 @@ const fallbackQuestions = [
     category: "Runtime",
     level: "medium",
     question: "Category 为什么不能直接添加实例变量？",
+    audio: "audio/ios-runtime-002.mp3",
     answer: "Category 在运行时会把方法、协议、属性声明等附加到已有类上，但类的实例内存布局在编译期已经确定，不能再安全插入实例变量。Category 的属性默认只生成声明，不会自动生成存储。需要保存额外状态时，通常使用 Associated Objects，把 key 和 value 关联到对象上。"
   },
   {
@@ -20,6 +22,7 @@ const fallbackQuestions = [
     category: "RunLoop",
     level: "medium",
     question: "RunLoop 的作用是什么？",
+    audio: "audio/ios-runloop-001.mp3",
     answer: "RunLoop 是线程的事件循环机制，用来让线程在有事件时处理事件、无事件时休眠。它管理 Source、Timer、Observer，并通过 Mode 隔离不同场景的输入源。主线程 RunLoop 默认启动，所以 App 能持续响应触摸、定时器、端口消息和界面刷新。子线程如果需要常驻，也要手动配置输入源并启动 RunLoop。"
   },
   {
@@ -27,6 +30,7 @@ const fallbackQuestions = [
     category: "RunLoop",
     level: "easy",
     question: "为什么滑动列表时 NSTimer 可能不触发？",
+    audio: "audio/ios-runloop-002.mp3",
     answer: "列表滑动时主线程 RunLoop 会切到 UITrackingRunLoopMode。如果 Timer 只注册在默认模式，当前模式不包含它，就会暂停触发。常见处理方式是把 Timer 加到 common modes，或者根据业务改用 GCD timer，避免被 RunLoop mode 影响。"
   },
   {
@@ -34,6 +38,7 @@ const fallbackQuestions = [
     category: "内存",
     level: "medium",
     question: "weak 和 assign 的区别是什么？",
+    audio: "audio/ios-memory-001.mp3",
     answer: "weak 用于对象引用，不持有对象；对象释放后 weak 指针会自动置为 nil，避免野指针。assign 只是普通赋值，不管理生命周期，也不会自动置空，适合基本数据类型。对象引用如果用 assign，目标释放后继续访问可能崩溃。"
   },
   {
@@ -41,6 +46,7 @@ const fallbackQuestions = [
     category: "内存",
     level: "hard",
     question: "如何排查循环引用？",
+    audio: "audio/ios-memory-002.mp3",
     answer: "先从现象确认对象没有释放，例如 dealloc 不打印或内存持续增长。再检查常见强引用环：block 捕获 self、delegate 使用 strong、timer 或 display link 持有 target、通知和 KVO 未释放。可以用 Xcode Memory Graph 找引用链，结合 Instruments Leaks/Allocations 验证。修复时不要机械使用 weak，要根据所有权选择 weak、拆分生命周期或显式 invalidate。"
   },
   {
@@ -48,6 +54,7 @@ const fallbackQuestions = [
     category: "并发",
     level: "medium",
     question: "GCD 串行队列和并发队列有什么区别？",
+    audio: "audio/ios-concurrency-001.mp3",
     answer: "串行队列一次只执行一个任务，保证提交到同一队列的任务按顺序执行。并发队列可以同时执行多个任务，但开始顺序仍和提交顺序相关，完成顺序不保证。同步或异步决定当前线程是否等待任务完成，队列类型决定任务之间能否并行。"
   },
   {
@@ -55,6 +62,7 @@ const fallbackQuestions = [
     category: "并发",
     level: "hard",
     question: "在主队列同步派发为什么会死锁？",
+    audio: "audio/ios-concurrency-002.mp3",
     answer: "如果当前已经在主线程，又调用 DispatchQueue.main.sync，当前任务会等待同步派发的任务执行完成；但主队列是串行队列，新的任务必须等当前任务结束后才能执行。双方互相等待，就产生死锁。解决方式是避免在主线程 sync 到主队列，必要时判断线程或改用 async。"
   },
   {
@@ -62,6 +70,7 @@ const fallbackQuestions = [
     category: "网络",
     level: "medium",
     question: "HTTPS 握手大致做了什么？",
+    audio: "audio/ios-network-001.mp3",
     answer: "HTTPS 在 TCP 连接后进行 TLS 握手。客户端和服务端协商协议版本、加密套件，服务端下发证书，客户端校验证书链和域名。随后双方通过密钥交换生成会话密钥，用对称加密保护后续 HTTP 数据。TLS 1.3 简化了握手流程，减少往返次数。"
   },
   {
@@ -69,6 +78,7 @@ const fallbackQuestions = [
     category: "网络",
     level: "easy",
     question: "URLSession 的 dataTask 回调在哪个线程？",
+    audio: "audio/ios-network-002.mp3",
     answer: "URLSession 的 completion handler 不保证在主线程执行，通常在后台队列回调。涉及 UI 更新时必须切回主线程。创建 URLSession 时也可以通过 delegateQueue 控制 delegate 回调队列，但仍要明确区分网络处理和 UI 更新的线程边界。"
   }
 ];
@@ -83,7 +93,8 @@ const state = {
   answerVisible: false,
   favoriteIds: new Set(),
   masteredIds: new Set(),
-  speakingId: null
+  speakingId: null,
+  audioPlayer: null
 };
 
 const elements = {
@@ -304,7 +315,7 @@ function renderDetail() {
   elements.favoriteButton.disabled = !hasQuestion;
   elements.masteredButton.disabled = !hasQuestion;
   elements.toggleAnswerButton.disabled = !hasQuestion;
-  elements.speakButton.disabled = !hasQuestion || !("speechSynthesis" in window);
+  elements.speakButton.disabled = !canPlayAnswer(question);
 
   if (!question) {
     elements.metaLine.textContent = "";
@@ -312,6 +323,7 @@ function renderDetail() {
     elements.answerText.textContent = "";
     elements.answerBox.classList.add("is-hidden");
     elements.toggleAnswerButton.textContent = "显示答案";
+    elements.speakButton.textContent = "朗读答案";
     elements.favoriteButton.setAttribute("aria-pressed", "false");
     elements.masteredButton.setAttribute("aria-pressed", "false");
     return;
@@ -325,6 +337,9 @@ function renderDetail() {
   elements.answerText.textContent = question.answer;
   elements.answerBox.classList.toggle("is-hidden", !state.answerVisible);
   elements.toggleAnswerButton.textContent = state.answerVisible ? "隐藏答案" : "显示答案";
+  elements.speakButton.textContent = state.speakingId === question.id
+    ? getSpeakActiveText(question)
+    : getSpeakIdleText(question);
 
   const isFavorite = state.favoriteIds.has(question.id);
   const isMastered = state.masteredIds.has(question.id);
@@ -446,6 +461,24 @@ function voiceLabel(voice) {
   return `${voice.name} (${voice.lang || "未知"})`;
 }
 
+function canPlayAnswer(question) {
+  return Boolean(question?.audio) || "speechSynthesis" in window;
+}
+
+function getSpeakIdleText(question) {
+  return question?.audio ? "播放音频" : "朗读答案";
+}
+
+function getSpeakActiveText(question) {
+  return state.audioPlayer ? "停止播放" : "停止朗读";
+}
+
+function resetSpeakingState() {
+  state.speakingId = null;
+  state.audioPlayer = null;
+  elements.speakButton.textContent = getSpeakIdleText(getSelectedQuestion());
+}
+
 function getQuestionSearchText(question) {
   return [
     question.question,
@@ -468,15 +501,50 @@ function toggleId(set, id) {
 }
 
 function speakAnswer(question) {
-  if (!("speechSynthesis" in window)) {
-    return;
-  }
   if (state.speakingId === question.id) {
     stopSpeaking();
     return;
   }
 
   stopSpeaking();
+  if (question.audio) {
+    playAudioAnswer(question);
+    return;
+  }
+
+  speakTextAnswer(question);
+}
+
+function playAudioAnswer(question) {
+  const audio = new Audio(question.audio);
+  state.audioPlayer = audio;
+  state.speakingId = question.id;
+  elements.speakButton.textContent = "停止播放";
+
+  const fallbackToText = () => {
+    if (state.audioPlayer !== audio) {
+      return;
+    }
+    state.audioPlayer = null;
+    state.speakingId = null;
+    speakTextAnswer(question);
+  };
+
+  audio.addEventListener("ended", () => {
+    if (state.audioPlayer === audio) {
+      resetSpeakingState();
+    }
+  }, { once: true });
+  audio.addEventListener("error", fallbackToText, { once: true });
+  audio.play().catch(fallbackToText);
+}
+
+function speakTextAnswer(question) {
+  if (!("speechSynthesis" in window)) {
+    resetSpeakingState();
+    return;
+  }
+
   const utterance = new SpeechSynthesisUtterance(question.answer);
   const voice = getSpeechVoice();
   if (voice) {
@@ -486,8 +554,7 @@ function speakAnswer(question) {
   utterance.rate = 0.9;
   utterance.pitch = 1;
   utterance.onend = () => {
-    state.speakingId = null;
-    elements.speakButton.textContent = "朗读答案";
+    resetSpeakingState();
   };
   utterance.onerror = utterance.onend;
   state.speakingId = question.id;
@@ -496,11 +563,15 @@ function speakAnswer(question) {
 }
 
 function stopSpeaking() {
+  if (state.audioPlayer) {
+    state.audioPlayer.pause();
+    state.audioPlayer.currentTime = 0;
+    state.audioPlayer = null;
+  }
   if ("speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
-  state.speakingId = null;
-  elements.speakButton.textContent = "朗读答案";
+  resetSpeakingState();
 }
 
 function formatLevel(level) {
