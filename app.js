@@ -77,6 +77,8 @@ const state = {
   questions: [],
   selectedId: null,
   activeCategory: "all",
+  searchQuery: "",
+  mistakeMode: false,
   answerVisible: false,
   favoriteIds: new Set(),
   masteredIds: new Set(),
@@ -84,7 +86,10 @@ const state = {
 };
 
 const elements = {
+  searchInput: document.getElementById("searchInput"),
   categoryFilter: document.getElementById("categoryFilter"),
+  mistakeModeButton: document.getElementById("mistakeModeButton"),
+  randomButton: document.getElementById("randomButton"),
   questionCount: document.getElementById("questionCount"),
   questionList: document.getElementById("questionList"),
   metaLine: document.getElementById("metaLine"),
@@ -126,12 +131,25 @@ async function loadQuestions() {
 }
 
 function bindEvents() {
+  elements.searchInput.addEventListener("input", () => {
+    state.searchQuery = elements.searchInput.value.trim().toLowerCase();
+    updateSelectionForFilteredQuestions();
+    render();
+  });
+
   elements.categoryFilter.addEventListener("change", () => {
     state.activeCategory = elements.categoryFilter.value;
-    const filteredQuestions = getFilteredQuestions();
-    state.selectedId = filteredQuestions[0]?.id ?? null;
-    state.answerVisible = false;
-    stopSpeaking();
+    updateSelectionForFilteredQuestions();
+    render();
+  });
+
+  elements.randomButton.addEventListener("click", () => {
+    selectRandomQuestion();
+  });
+
+  elements.mistakeModeButton.addEventListener("click", () => {
+    state.mistakeMode = !state.mistakeMode;
+    updateSelectionForFilteredQuestions();
     render();
   });
 
@@ -157,6 +175,7 @@ function bindEvents() {
   elements.masteredButton.addEventListener("click", () => {
     toggleId(state.masteredIds, state.selectedId);
     saveState();
+    updateSelectionForFilteredQuestions();
     render();
   });
 }
@@ -200,6 +219,8 @@ function render() {
 function renderList() {
   const questions = getFilteredQuestions();
   elements.questionCount.textContent = `${questions.length} 道`;
+  elements.mistakeModeButton.setAttribute("aria-pressed", String(state.mistakeMode));
+  elements.randomButton.disabled = questions.length === 0;
 
   if (questions.length === 0) {
     elements.questionList.innerHTML = '<p class="empty-state">当前分类没有题目。</p>';
@@ -270,14 +291,62 @@ function renderDetail() {
 }
 
 function getFilteredQuestions() {
-  if (state.activeCategory === "all") {
-    return state.questions;
-  }
-  return state.questions.filter((question) => question.category === state.activeCategory);
+  return state.questions.filter((question) => {
+    const matchesCategory = state.activeCategory === "all" || question.category === state.activeCategory;
+    if (!matchesCategory) {
+      return false;
+    }
+    if (state.mistakeMode && state.masteredIds.has(question.id)) {
+      return false;
+    }
+    if (!state.searchQuery) {
+      return true;
+    }
+    return getQuestionSearchText(question).includes(state.searchQuery);
+  });
 }
 
 function getSelectedQuestion() {
   return state.questions.find((question) => question.id === state.selectedId) ?? null;
+}
+
+function updateSelectionForFilteredQuestions() {
+  const filteredQuestions = getFilteredQuestions();
+  const hasSelectedQuestion = filteredQuestions.some((question) => question.id === state.selectedId);
+  if (hasSelectedQuestion) {
+    return;
+  }
+  state.selectedId = filteredQuestions[0]?.id ?? null;
+  state.answerVisible = false;
+  stopSpeaking();
+}
+
+function selectRandomQuestion() {
+  const filteredQuestions = getFilteredQuestions();
+  if (filteredQuestions.length === 0) {
+    return;
+  }
+
+  let candidates = filteredQuestions;
+  if (filteredQuestions.length > 1) {
+    candidates = filteredQuestions.filter((question) => question.id !== state.selectedId);
+  }
+
+  const randomIndex = Math.floor(Math.random() * candidates.length);
+  state.selectedId = candidates[randomIndex].id;
+  state.answerVisible = false;
+  stopSpeaking();
+  render();
+}
+
+function getQuestionSearchText(question) {
+  return [
+    question.question,
+    question.answer,
+    question.category,
+    question.level,
+    formatLevel(question.level)
+  ].join(" ").toLowerCase();
 }
 
 function toggleId(set, id) {
