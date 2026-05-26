@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4;
-            margin: 20mm 15mm;
+            margin: 18mm 14mm;
         }
         
         * {
@@ -18,12 +18,13 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
+            line-height: 1.55;
             color: #1a1a1a;
             background: #fff;
-            padding: 40px;
+            padding: 36px 40px;
             max-width: 800px;
             margin: 0 auto;
+            font-size: 13px;
         }
         
         @media print {
@@ -33,16 +34,15 @@
             }
         }
         
-        /* Header */
         .header {
             text-align: center;
-            padding-bottom: 20px;
+            padding-bottom: 16px;
             border-bottom: 2px solid #007AFF;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         
         .header h1 {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 600;
             color: #1a1a1a;
             margin-bottom: 4px;
@@ -50,76 +50,69 @@
         }
         
         .header .subtitle {
-            font-size: 15px;
+            font-size: 14px;
             color: #007AFF;
             font-weight: 500;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         
         .contact-info {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 20px;
-            font-size: 13px;
+            gap: 18px;
+            font-size: 12px;
             color: #555;
         }
         
         .contact-info span {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         
-        .contact-info .icon {
-            font-size: 14px;
-        }
-        
-        /* Sections */
         .section {
-            margin-bottom: 22px;
+            margin-bottom: 18px;
         }
         
         .section-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: #007AFF;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             border-bottom: 1.5px solid #e5e5e5;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
         .section-title .dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             background: #007AFF;
             border-radius: 50%;
         }
         
-        /* Summary */
         .summary {
-            font-size: 14px;
-            line-height: 1.8;
+            font-size: 12.5px;
+            line-height: 1.75;
             color: #333;
             background: #f8f9fa;
-            padding: 14px 18px;
+            padding: 12px 16px;
             border-radius: 8px;
             border-left: 3px solid #007AFF;
         }
         
-        /* Skills */
         .skills-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 8px;
         }
         
         .skill-item {
-            font-size: 13px;
-            padding: 8px 12px;
+            font-size: 12px;
+            padding: 6px 10px;
             background: #f8f9fa;
             border-radius: 6px;
             display: flex;
@@ -131,17 +124,51 @@
             font-weight: 600;
             color: #007AFF;
             white-space: nowrap;
-            min-width: 80px;
+            min-width: 72px;
         }
         
         .skill-value {
             color: #444;
         }
         
-        /* Experience */
-        .experience-item {
-            margin-bottom: 18px;
+        .highlight {
+            color: #007AFF;
+            font-weight: 500;
+        }
+
+        .tech-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tech-list li {
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: #444;
             padding-left: 16px;
+            position: relative;
+            margin-bottom: 6px;
+        }
+        
+        .tech-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 7px;
+            width: 6px;
+            height: 6px;
+            background: #007AFF;
+            border-radius: 50%;
+        }
+        
+        .tech-list li strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+        
+        .experience-item {
+            margin-bottom: 16px;
+            padding-left: 14px;
             border-left: 2px solid #e5e5e5;
             position: relative;
         }
@@ -153,10 +180,10 @@
         .experience-item::before {
             content: '';
             position: absolute;
-            left: -6px;
-            top: 6px;
-            width: 10px;
-            height: 10px;
+            left: -5.5px;
+            top: 5px;
+            width: 9px;
+            height: 9px;
             background: #007AFF;
             border-radius: 50%;
             border: 2px solid #fff;
@@ -167,24 +194,24 @@
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             flex-wrap: wrap;
         }
         
         .experience-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #1a1a1a;
         }
         
         .experience-company {
-            font-size: 14px;
+            font-size: 13px;
             color: #007AFF;
             font-weight: 500;
         }
         
         .experience-date {
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
             background: #f0f0f0;
             padding: 2px 10px;
@@ -197,12 +224,12 @@
         }
         
         .experience-details li {
-            font-size: 13px;
+            font-size: 12.5px;
             line-height: 1.7;
             color: #444;
-            padding-left: 16px;
+            padding-left: 14px;
             position: relative;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
         
         .experience-details li::before {
@@ -210,15 +237,14 @@
             position: absolute;
             left: 0;
             color: #007AFF;
-            font-size: 12px;
+            font-size: 11px;
         }
         
-        /* Education */
         .education-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
+            padding: 10px 14px;
             background: #f8f9fa;
             border-radius: 8px;
             flex-wrap: wrap;
@@ -233,18 +259,18 @@
         }
         
         .education-school {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #1a1a1a;
         }
         
         .education-major {
-            font-size: 13px;
+            font-size: 12px;
             color: #555;
         }
         
         .education-degree {
-            font-size: 12px;
+            font-size: 11px;
             background: #007AFF;
             color: #fff;
             padding: 2px 10px;
@@ -252,17 +278,10 @@
         }
         
         .education-date {
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
         }
         
-        /* Highlight keywords */
-        .highlight {
-            color: #007AFF;
-            font-weight: 500;
-        }
-        
-        /* Print optimization */
         @media print {
             .experience-item {
                 break-inside: avoid;
@@ -275,20 +294,18 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <h1>苏小龙</h1>
         <div class="subtitle">高级 iOS 开发工程师（智能硬件 / 音视频 / 金融方向）</div>
         <div class="contact-info">
-            <span><span class="icon">🎂</span> 31 岁</span>
             <span><span class="icon">📱</span> 15322059092</span>
             <span><span class="icon">📧</span> 873098673@qq.com</span>
             <span><span class="icon">📍</span> 广州市</span>
+            <span><span class="icon">🎂</span> 31 岁</span>
             <span><span class="icon">💼</span> 在职</span>
         </div>
     </div>
     
-    <!-- Summary -->
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
@@ -299,7 +316,6 @@
         </div>
     </div>
     
-    <!-- Skills -->
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
@@ -332,22 +348,20 @@
             </div>
         </div>
     </div>
-
-    <!-- Technical Highlights -->
+    
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
             技术难点与代表成果
         </div>
-        <ul class="experience-details">
-            <li><span class="highlight">WebRTC 直播与设备控制链路</span>：梳理页面生命周期、设备注册、DataChannel 指令、状态回包、播放渲染与资源释放边界，解决 SD 卡状态、夜视模式、回放入口、容量展示等 UI 状态同步问题，推动相关线上 crash 率下降约 40%。</li>
-            <li><span class="highlight">实时预览渲染性能优化</span>：将原有逐帧生成 UIImage 并赋值 UIImageView 的渲染方案，改为基于 Metal 的硬件加速渲染，降低主线程与 CPU 开销，使预览场景 CPU 平均占用从约 45% 降至约 30%，长时间预览发热反馈减少。</li>
-            <li><span class="highlight">音视频录制与文件链路稳定性</span>：优化录像分辨率参数传递、MP4 录制输出与文件下载状态隔离，修复部分机型 MP4 输出尺寸异常和下载状态串扰问题，提升录制与下载链路回归稳定性。</li>
-            <li><span class="highlight">金融核心模块交付</span>：在汇丰银行 Contact Details 模块推进动态输入校验、国际化、无障碍适配、Jenkins CI、XCTest 与 UITest，覆盖主要输入校验与提交流程，支撑多语言与合规场景下的稳定交付。</li>
+        <ul class="tech-list">
+            <li><strong>WebRTC 直播与设备控制链路：</strong>梳理页面生命周期、设备注册、DataChannel 指令、状态回包、播放渲染与资源释放边界，解决 SD 卡状态、夜视模式、回放入口、容量展示等 UI 状态同步问题，推动相关线上 <span class="highlight">crash 率下降约 40%</span>。</li>
+            <li><strong>实时预览渲染性能优化：</strong>将原有逐帧生成 UIImage 并赋值 UIImageView 的渲染方案，改为基于 <span class="highlight">Metal 硬件加速渲染</span>，降低主线程与 CPU 开销，使预览场景 CPU 平均占用从约 45% 降至约 20%，长时间预览发热反馈减少。</li>
+            <li><strong>音视频录制与文件链路稳定性：</strong>优化录像分辨率参数传递、MP4 录制输出与文件下载状态隔离，修复部分机型 MP4 输出尺寸异常和下载状态串扰问题，提升录制与下载链路回归稳定性。</li>
+            <li><strong>金融核心模块交付：</strong>在汇丰银行 Contact Details 模块推进动态输入校验、国际化、无障碍适配、Jenkins CI、XCTest 与 UITest，覆盖主要输入校验与提交流程，支撑多语言与合规场景下的稳定交付。</li>
         </ul>
     </div>
     
-    <!-- Experience -->
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
@@ -364,10 +378,7 @@
             </div>
             <ul class="experience-details">
                 <li>负责 V720 智能摄像头 iOS App 核心模块开发与维护，覆盖实时预览、WebRTC 直播、设备控制、SD 卡回放、截图录像、文件下载等核心链路。</li>
-                <li>针对 MP4 录制尺寸异常与文件下载状态串扰，梳理录像分辨率参数传递、下载状态隔离与多机型兼容路径，修复部分机型 MP4 输出尺寸异常，提升录制与下载链路回归稳定性。</li>
-                <li>优化实时预览渲染方案，将逐帧生成 UIImage 并刷新 UIImageView 的高开销路径，改为 Metal 硬件加速渲染，降低主线程与 CPU 资源消耗，使预览场景 CPU 平均占用从约 45% 降至约 30%，长时间预览发热反馈减少。</li>
-                <li>维护普通直播与 WebRTC 双链路，梳理页面生命周期、设备注册、连接、指令发送、状态回包、播放渲染和资源释放边界，推动链路切换相关线上 crash 率下降约 40%。</li>
-                <li>优化 WebRTC 设备控制链路，完善 SD 卡状态、夜视模式、回放、文件下载等指令的权限校验、回包解析和 UI 状态同步，解决状态 loading、回放入口判断、容量展示等问题。</li>
+                <li>完成实时预览渲染 Metal 化改造、WebRTC 双链路稳定性治理、MP4 录制与下载链路优化等技术难点攻关，详见「技术难点与代表成果」章节。</li>
                 <li>协同验证 WebRTC 底层替换方案，围绕 SDP、DataChannel、RTP 收包、H.264 解码与首帧渲染建立排查路径，将兼容边界收敛在 Media 层，减少 App 层改动风险。</li>
             </ul>
         </div>
@@ -381,8 +392,7 @@
                 <span class="experience-date">2021.05 - 2024.05</span>
             </div>
             <ul class="experience-details">
-                <li>负责汇丰银行个人金融 iOS 应用 Contact Details 等核心模块开发与维护，支持用户管理手机、邮箱、地址等通讯信息。</li>
-                <li>基于 <span class="highlight">VIPER 架构</span>维护核心代码，实现手机号与邮箱输入验证规则的动态更新，保障金融数据录入准确性。</li>
+                <li>负责汇丰银行个人金融 iOS 应用 Contact Details 等核心模块开发，基于 <span class="highlight">VIPER 架构</span>实现手机号与邮箱输入验证规则的动态更新，保障金融数据录入准确性。</li>
                 <li>主导模块<span class="highlight">国际化与无障碍适配</span>，支持繁体中文、英文等多语言环境，满足香港金融业务对可用性和合规性的要求。</li>
                 <li>配置 Jenkins 持续集成流水线，接入 XCTest 单元测试与 UITest 界面测试，覆盖 Contact Details 主要输入校验与提交流程，保障大型银行项目交付质量。</li>
                 <li>使用 Tealium 进行用户行为埋点与分析，辅助产品团队定位联系人信息修改流程中的关键节点。</li>
@@ -399,13 +409,12 @@
             </div>
             <ul class="experience-details">
                 <li>参与 B2B ERP、语音社交、电商、智能设备回收类 iOS App 开发，覆盖业务模块开发、组件化、本地缓存、弱网同步、登录支付、多机型适配与性能优化。</li>
-                <li>设计 <span class="highlight">CocoaPods 私有组件库</span>，抽象基础 UI、网络层、数据库层，减少重复开发并提升协作效率。</li>
-                <li><span class="highlight">独立负责</span> Whisper 语音社交 iOS 端，从架构搭建、Agora 音视频集成、登录认证、互动动画到 App Store 上架完成全流程交付。</li>
+                <li>设计 CocoaPods 私有组件库，抽象基础 UI、网络层、数据库层，减少重复开发并提升协作效率。</li>
+                <li>独立负责 Whisper 语音社交 iOS 端，从架构搭建、Agora 音视频集成、登录认证、互动动画到 App Store 上架完成全流程交付。</li>
             </ul>
         </div>
     </div>
     
-    <!-- Education -->
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
