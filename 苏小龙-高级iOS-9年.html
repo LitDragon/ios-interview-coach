@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>苏小龙 - 高级 iOS 开发工程师</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm 15mm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #fff;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+                background: #fff;
+            }
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #007AFF;
+            margin-bottom: 24px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            letter-spacing: 2px;
+        }
+        
+        .header .subtitle {
+            font-size: 15px;
+            color: #007AFF;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .contact-info span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .contact-info .icon {
+            font-size: 14px;
+        }
+        
+        /* Sections */
+        .section {
+            margin-bottom: 22px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #007AFF;
+            padding-bottom: 8px;
+            border-bottom: 1.5px solid #e5e5e5;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title .dot {
+            width: 8px;
+            height: 8px;
+            background: #007AFF;
+            border-radius: 50%;
+        }
+        
+        /* Summary */
+        .summary {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+            background: #f8f9fa;
+            padding: 14px 18px;
+            border-radius: 8px;
+            border-left: 3px solid #007AFF;
+        }
+        
+        /* Skills */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .skill-item {
+            font-size: 13px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .skill-label {
+            font-weight: 600;
+            color: #007AFF;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        
+        .skill-value {
+            color: #444;
+        }
+        
+        /* Experience */
+        .experience-item {
+            margin-bottom: 18px;
+            padding-left: 16px;
+            border-left: 2px solid #e5e5e5;
+            position: relative;
+        }
+        
+        .experience-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .experience-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            background: #007AFF;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #007AFF;
+        }
+        
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .experience-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .experience-company {
+            font-size: 14px;
+            color: #007AFF;
+            font-weight: 500;
+        }
+        
+        .experience-date {
+            font-size: 12px;
+            color: #888;
+            background: #f0f0f0;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        
+        .experience-details {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .experience-details li {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #444;
+            padding-left: 16px;
+            position: relative;
+            margin-bottom: 4px;
+        }
+        
+        .experience-details li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: #007AFF;
+            font-size: 12px;
+        }
+        
+        /* Education */
+        .education-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .education-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .education-school {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .education-major {
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .education-degree {
+            font-size: 12px;
+            background: #007AFF;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        
+        .education-date {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        /* Highlight keywords */
+        .highlight {
+            color: #007AFF;
+            font-weight: 500;
+        }
+        
+        /* Print optimization */
+        @media print {
+            .experience-item {
+                break-inside: avoid;
+            }
+            
+            .section {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>苏小龙</h1>
+        <div class="subtitle">高级 iOS 开发工程师</div>
+        <div class="contact-info">
+            <span><span class="icon">📱</span> 15322059092</span>
+            <span><span class="icon">📧</span> 873098673@qq.com</span>
+            <span><span class="icon">📍</span> 广州市</span>
+            <span><span class="icon">💼</span> 在职</span>
+        </div>
+    </div>
+    
+    <!-- Summary -->
+    <div class="section">
+        <div class="section-title">
+            <span class="dot"></span>
+            个人总结
+        </div>
+        <div class="summary">
+            近 <span class="highlight">10 年 iOS 开发经验</span>，长期参与智能硬件音视频、金融、社交语音、B2B 交易等业务，熟悉 Objective-C、Swift、UIKit、组件化、性能优化与 CI/CD。近两年负责智能摄像头 App 实时预览、<span class="highlight">WebRTC 直播</span>、SD 卡回放、设备控制、截图录像与文件下载链路，擅长 App、设备 SDK、Media 层<span class="highlight">跨层问题定位</span>、真机排障与稳定性交付。
+        </div>
+    </div>
+    
+    <!-- Skills -->
+    <div class="section">
+        <div class="section-title">
+            <span class="dot"></span>
+            技能栈
+        </div>
+        <div class="skills-grid">
+            <div class="skill-item">
+                <span class="skill-label">语言与框架</span>
+                <span class="skill-value">Objective-C / Swift / Objective-C++ / UIKit / Foundation</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-label">架构与工程</span>
+                <span class="skill-value">VIPER / MVVM / MVC / 组件化 / CocoaPods</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-label">音视频与设备</span>
+                <span class="skill-value">WebRTC / FFmpeg / Metal / AVAudioSession / H.264</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-label">网络与通信</span>
+                <span class="skill-value">SocketRocket / DataChannel / UDP/TCP / NSURLSession</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-label">数据与存储</span>
+                <span class="skill-value">CoreData / SQLite / UserDefaults / AES 加密</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-label">质量与协作</span>
+                <span class="skill-value">Instruments / XCTest / Jenkins CI/CD / Git</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Experience -->
+    <div class="section">
+        <div class="section-title">
+            <span class="dot"></span>
+            工作经历
+        </div>
+        
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">高级 iOS 开发工程师</span>
+                    <span class="experience-company"> | 广州钱柜物联科技有限公司</span>
+                </div>
+                <span class="experience-date">2024.06 - 至今</span>
+            </div>
+            <ul class="experience-details">
+                <li>负责 V720 智能摄像头 iOS App 核心模块开发与维护，覆盖实时预览、WebRTC 直播、设备控制、SD 卡回放、截图录像、文件下载、夜视控制、画面侦测提醒等链路。</li>
+                <li>维护普通直播与 WebRTC 双链路，梳理页面生命周期、设备注册、连接、指令发送、状态回包、播放渲染和资源释放边界，降低链路切换带来的状态不一致风险。</li>
+                <li>优化 WebRTC 设备控制链路，完善 SD 卡状态、夜视模式、回放、文件下载等指令的权限校验、回包解析和 UI 状态同步，解决状态 loading、回放入口判断、容量展示等问题。</li>
+                <li>负责截图录像与下载体验优化，打通 App 层到录制/播放器配置的分辨率参数传递，修复部分机型 MP4 输出尺寸异常；按设备维度隔离本地下载状态，避免不同设备同名录像误判。</li>
+                <li>参与 WebRTC 底层替换与兼容方案验证，围绕 SDP、answer、DataChannel、RTP 收包、H.264 解码与首帧渲染建立排查路径，将兼容边界收敛在 Media 层，减少 App 层改动风险。</li>
+            </ul>
+        </div>
+        
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">高级 iOS 开发工程师</span>
+                    <span class="experience-company"> | 印孚瑟斯技术有限公司</span>
+                </div>
+                <span class="experience-date">2021.05 - 2024.05</span>
+            </div>
+            <ul class="experience-details">
+                <li>负责汇丰银行个人金融 iOS 应用 Contact Details 等核心模块开发与维护，支持用户管理手机、邮箱、地址等通讯信息。</li>
+                <li>基于 <span class="highlight">VIPER 架构</span>维护核心代码，实现手机号与邮箱输入验证规则的动态更新，保障金融数据录入准确性。</li>
+                <li>主导模块<span class="highlight">国际化与无障碍适配</span>，支持繁体中文、英文等多语言环境，满足香港金融业务对可用性和合规性的要求。</li>
+                <li>配置 Jenkins 持续集成流水线，接入 XCTest 单元测试与 UITest 界面测试，通过自动化测试保障大型银行项目交付质量。</li>
+                <li>使用 Tealium 进行用户行为埋点与分析，辅助产品团队定位联系人信息修改流程中的关键节点。</li>
+            </ul>
+        </div>
+        
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">iOS 开发工程师</span>
+                    <span class="experience-company"> | 广州宏略信息科技有限公司</span>
+                </div>
+                <span class="experience-date">2021.01 - 2021.04</span>
+            </div>
+            <ul class="experience-details">
+                <li><span class="highlight">独立负责</span> Whisper 语音社交平台 iOS 端开发，从需求评审、架构搭建、核心功能实现到 App Store 上架全周期交付。</li>
+                <li>集成 <span class="highlight">Agora SDK</span> 实现一对一视频通话与多人在线语音直播间，接入微信与手机号一键登录，完善用户身份认证流程。</li>
+                <li>基于 CAAnimation 与 UIView Animation 实现礼物打赏、表情动画等互动效果，提升社交场景下的实时互动体验。</li>
+            </ul>
+        </div>
+        
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">iOS 开发工程师</span>
+                    <span class="experience-company"> | 货宝宝网络科技有限公司</span>
+                </div>
+                <span class="experience-date">2019.06 - 2020.11</span>
+            </div>
+            <ul class="experience-details">
+                <li>参与货宝宝移动协同 ERP iOS 端开发，负责商品管理、订单交易、线上支付等核心模块迭代，支持离线作业场景。</li>
+                <li>设计并实施<span class="highlight">组件化架构方案</span>，通过 CocoaPods 搭建私有组件库，将基础 UI 组件、网络层、数据库层抽象为独立模块，减少重复开发并提升模块复用。</li>
+                <li>实现基于 SQLite 的本地数据缓存与增量同步机制，保障弱网或无网环境下业务流程连续性；设计 AES 本地加密方案，保护企业敏感数据。</li>
+                <li>建立统一字体、颜色与 UI 组件工具类，规范团队 UI 开发标准，提升界面一致性和协作效率。</li>
+            </ul>
+        </div>
+        
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">早期 iOS 开发经历</span>
+                    <span class="experience-company"> | 乐嘉淘网络科技 / 广州锦高信息科技</span>
+                </div>
+                <span class="experience-date">2016.06 - 2019.04</span>
+            </div>
+            <ul class="experience-details">
+                <li>参与电商与智能设备回收类 iOS App 开发，负责需求迭代、缺陷修复、多机型适配和基础性能优化。</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Education -->
+    <div class="section">
+        <div class="section-title">
+            <span class="dot"></span>
+            教育经历
+        </div>
+        <div class="education-item">
+            <div class="education-info">
+                <span class="education-school">西北工业大学</span>
+                <span class="education-major">计算机科学与技术</span>
+                <span class="education-degree">本科（在职教育）</span>
+            </div>
+            <span class="education-date">2019.09 - 2022.06</span>
+        </div>
+    </div>
+</body>
+</html>
