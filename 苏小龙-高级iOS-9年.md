@@ -11,26 +11,27 @@
 
 ## 个人总结
 
-10 年 iOS 开发经验，熟悉 Swift、Objective-C、UIKit、VIPER/MVC 架构、组件化、性能优化、自动化测试与 CI 流程。长期参与金融、社交语音、B2B 交易、设备检测、音视频等业务的 iOS 应用设计、开发和维护，重视代码质量、稳定性和交付效率。
+10 年 iOS 开发经验，熟悉 Swift、Objective-C、UIKit、VIPER/MVC 架构、组件化、性能优化、自动化测试与 CI 流程。长期参与金融、智能硬件音视频、社交语音、B2B 交易、设备检测等业务的 iOS 应用设计、开发和维护，近两年重点负责智能摄像头直播、回放、设备控制、录制下载与 WebRTC 音视频链路，具备 App / SDK / Media 跨层问题定位和真机排障经验。
 
 ## 技能栈
 
 - 语言与框架：Swift / SwiftUI / Objective-C / UIKit / Foundation
 - 架构设计：VIPER / MVVM / MVC / 组件化与模块化（CocoaPods / SPM）
+- 音视频与设备：WebRTC / FFmpeg / Metal 渲染 / AVAudioSession / MP4 录制 / 智能硬件设备控制
 - 并发与性能：GCD / NSOperation / Swift Concurrency（async/await）/ Instruments 性能调优
-- 数据与网络：CoreData / SQLite / UserDefaults / NSURLSession / AFNetworking
+- 数据与网络：CoreData / SQLite / UserDefaults / NSURLSession / AFNetworking / SocketRocket / UDP/TCP 通信
 - 工程化与质量：XCTest 单元测试 / UITest / Jenkins CI/CD / Git 工作流 / 代码审查
 - AI 工具与协作：GitHub Copilot / ChatGPT 辅助编码与代码审查 / 远程协作工具 / 技术文档撰写
 
 ## 工作经历
 
-### 待补充：当前在职公司经历
+### 高级 iOS 开发工程师 | 广州钱柜物联科技有限公司 | 2024.06 - 至今
 
-- 时间：2024.01 之后至今，待补充准确起止时间
-- 公司：待补充
-- 职位：待补充
-- 工作内容：待补充
-- 项目经历：待补充
+- 核心职责：负责 V720 智能摄像头 iOS App 核心模块开发与维护，覆盖普通直播、WebRTC 直播、设备控制、SD 卡回放、截图录像、文件下载等高频链路。
+- 跨层问题定位：围绕 App、NaxclowSdk、NaxclowMedia 三层边界排查复杂问题，处理设备注册、连接时序、DataChannel 指令、DP 权限、媒体解码、渲染与录制参数透传等问题。
+- 音视频链路优化：维护基于 FFmpeg、Metal、AVAudioSession、WebRTC 的播放、录制、截图和音频链路，修复多机型录像分辨率、MP4 输出尺寸、WebRTC 录制与渲染状态同步问题。
+- 智能硬件能力适配：完善夜视模式、SD 卡状态、回放命令、文件下载、画面侦测提醒等设备能力接入，统一普通直播与 WebRTC 链路在 UI 状态和设备回包上的差异。
+- 稳定性交付：通过 iphoneos 构建、局部逻辑测试、脚本检查和设备日志定位进行窄范围验证，避免仅依赖静态推断关闭音视频与硬件联调问题。
 
 ### 高级 iOS 开发工程师 | 印孚瑟斯技术有限公司 | 2021.05 - 2024.01
 
@@ -67,6 +68,16 @@
 - 技术沉淀：撰写 iOS 开发指引文档，参与团队代码评审与技术分享，促进 Swift/Objective-C 混编项目的代码规范统一。
 
 ## 项目经历
+
+### V720 智能摄像头 iOS App | 2024.01 - 至今 | 核心开发
+
+- 项目背景：面向家用/行业智能摄像头的 iOS 客户端，支持实时预览、WebRTC 直播、SD 卡回放、截图录像、文件下载、夜视控制、画面侦测提醒等能力，业务难点集中在 App、设备协议、SDK 通信与音视频 Media 层协同。
+- 技术方案：Objective-C / Objective-C++ / UIKit / CocoaPods / WebRTC / FFmpeg / Metal / AVAudioSession / SocketRocket / UDP/TCP / DataChannel
+- 维护普通直播与 WebRTC 双链路，梳理 `QGLiveVC / QGWebRTCLiveVC -> NaxclowSdk -> NaxclowMedia` 调用边界，保证设备注册、连接、指令发送、状态回包、播放渲染和页面生命周期清理一致。
+- 优化 WebRTC 设备控制链路，完善 `sd_info`、夜视模式、回放、文件下载等指令的权限门禁、回包解析和 UI 状态同步，解决 SD 卡状态 loading、回放入口判断、已用容量展示等问题。
+- 负责截图录像与下载体验优化，将录像宽高从 App 层透传到 `NaxRecordSessionConfig / NaxPlayer`，修复特定机型 MP4 输出分辨率不生效问题；按设备维度隔离本地下载标记，避免不同设备同名录像误判。
+- 支持 WebRTC 回放增强能力，解析录像片段与画面侦测提醒数据，在录像列表和时间轴上展示提醒标记，同时兼容普通回放共享组件。
+- 参与 WebRTC 底层替换与兼容方案验证，围绕 NanoRTSP SDP、answer、DataChannel、RTP 收包、H264 解码与首帧渲染建立排查路径，将底层替换边界收敛在 Media 层，降低 App 层改动风险。
 
 ### Hong Kong Contact Details（汇丰银行个人金融） | 2021.05 - 2024.01 | 团队规模：10+ 人 | 核心开发
 
