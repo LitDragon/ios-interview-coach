@@ -27,6 +27,8 @@
 >
 > 项目里我一般让 Model、配置、状态快照用 struct；需要身份、继承、共享生命周期、和 UIKit/OC 体系交互的对象用 class。核心是看它有没有"身份"和"共享可变状态"。
 
+> **OC 对照记忆：** OC 里全是 class，全是引用语义。你把一个 NSMutableArray 传给别人，别人改了你的也跟着变。Swift 引入 struct 值语义就是为了消灭这种"谁改了我的数据"的问题。你项目里的 OC Model 都是 class，如果迁到 Swift，优先考虑 struct 就对了。
+
 ---
 
 ## 02：Copy-on-Write 是什么？它解决了什么问题？
@@ -38,6 +40,8 @@
 > 它解决的是**值语义和性能**之间的矛盾。比如 `Array`、`Dictionary`、`String` 看起来是值类型，如果每次赋值都深拷贝会很慢，所以 Swift 用 COW 让读操作很轻，写的时候再保证互不影响。
 >
 > 但 COW 不等于线程安全。多个线程同时读写同一个变量或同一份共享状态，仍然可能数据竞争。自定义 COW 类型时，也要保证唯一引用判断和写入复制逻辑正确。
+
+> **OC 对照记忆：** OC 的 `copy` 属性是真拷贝，赋值就复制一份。Swift 的 COW 是延迟拷贝——读的时候共享，只有写的时候才复制。所以 Swift 的 Array 频繁赋值不会像 OC 的 NSMutableArray copy 那样每次都产生新对象，性能好很多。
 
 ---
 
@@ -51,6 +55,8 @@
 >
 > 但 Optional 不是绝对安全。强制解包会崩，隐式解包如果生命周期假设错了也会崩。项目里我会让 Optional 多出现在边界层，比如接口返回、配置缺失、弱引用，而不是让核心业务状态到处不确定。
 
+> **OC 对照记忆：** OC 里给 nil 发消息，静默返回零值（数字 0、BOOL NO、对象 nil），不崩但藏隐患。Swift 把"可能为 nil"变成了类型系统的一部分，编译器逼你处理。用 `!` 强制解包才会崩。本质区别：OC 的 nil 是"静默失败"，Swift 的 Optional 是"强制面对"。
+
 ---
 
 ## 04：Swift 的 ARC 和闭包捕获有哪些高频坑？
@@ -62,6 +68,8 @@
 > 我不会无脑写 `weak self`，会先看闭包生命周期。非逃逸闭包一般不需要 weak；会被长期保存的闭包，通常要用 weak 打断循环引用。`unowned` 只适合能严格保证被捕获对象活得更久的场景，否则访问已释放对象会直接崩。
 >
 > 面试里重点说清楚：内存问题不是语法问题，而是所有权问题。谁持有任务、任务什么时候结束、回调回来时对象是否还存在，这些才是关键。
+
+> **OC 对照记忆：** 和 OC 的 Block 循环引用原理完全一样。OC 用 `__weak typeof(self) weakSelf = self`，Swift 用 `[weak self]`。OC 的 `__unsafe_unretained` 对应 Swift 的 `unowned`。你做了 10 年 OC 内存管理，这套逻辑直接平移过来就行，只是语法不同。
 
 ---
 
@@ -75,6 +83,8 @@
 >
 > 项目里我会用协议定义模块间的接口边界，方便测试时替换 Mock。但需要共享可变状态、管理生命周期、或者和 UIKit/OC 体系交互时，仍然用 class。不要为了"面向协议"把简单代码过度抽象。
 
+> **OC 对照记忆：** OC 也有 protocol，但没有默认实现，每个遵循者都得手写所有方法。Swift 的协议扩展可以给默认实现，等于把 category 的能力安全地融入了协议。OC 里想给 protocol 加默认实现只能靠 category 给 NSObject 扩展，容易命名冲突。Swift 的协议导向本质上是"更安全的 category + 更灵活的多继承"。
+
 ---
 
 ## 06：any 和 some 怎么理解？什么时候用哪个？
@@ -86,6 +96,8 @@
 > `any` 是存在类型，可以在运行时装不同的实现进去，更灵活，但有包装成本和动态派发开销。需要异构集合（比如一个数组里放不同类型的协议遵循者）时，必须用 `any`。
 >
 > 简单原则：能用 `some` 就用 `some`，它性能好、类型安全；需要运行时灵活性时再用 `any`。不要无脑把所有协议参数都标 `any`，也不要为了用 `some` 把本来需要多态的场景强行写死。
+
+> **OC 对照记忆：** OC 里用 `id` 类型，什么都能传，编译器不管你传的是啥。`some` 就是编译器帮你锁定一个具体类型（编译期多态），`any` 就是 OC 的 `id` 那样运行时才确定（运行时多态）。理解这个，`some` 和 `any` 的区别就清楚了。
 
 ---
 
@@ -99,6 +111,8 @@
 >
 > 坑点是 `try?` 会把错误信息丢掉，调试时完全不知道为什么失败。核心链路上的错误一定要明确处理，不能图省事全用 `try?`。
 
+> **OC 对照记忆：** OC 用 NSError 指针参数，调用方可以传 nil 直接忽略错误，编译器不管你。很多 OC 代码 `error:nil` 一路传，错误被默默吞掉。Swift 的 `throws` 强制你用 `try` 处理，编译不过就跑不起来。本质区别：OC 的错误处理是"可选的"，Swift 是"强制的"。
+
 ---
 
 ## 08：GCD 和 Swift Concurrency 怎么取舍？
@@ -110,6 +124,8 @@
 > 新 Swift 业务里，我会优先用 `async/await` 写单次异步流程，因为代码更线性，错误和取消也更好传递。老模块、OC 代码、指定队列、barrier、底层 C API 这些场景，GCD 仍然有价值。
 >
 > 真正要避免的是混用失控。比如在 Task 里塞大量同步阻塞任务，或者在 GCD 回调里直接乱改 MainActor 状态。并发边界要统一，UI 状态要回到主线程语义。
+
+> **OC 对照记忆：** OC 里只能用 GCD（`dispatch_async`）和 NSOperation，异步代码全靠回调嵌套，容易"回调地狱"。Swift 的 `async/await` 把异步写成同步风格，代码从左到右读就行。`Actor` 本质上是 GCD 串行队列 + 编译器帮你检查线程安全。你以前手动 `dispatch_queue_create` 做的事，Swift 用 `actor` 一行搞定。
 
 ---
 
@@ -123,6 +139,8 @@
 >
 > 项目里我不会强行统一成一种。单次请求用 `async/await`，持续状态流用 Combine 或 SwiftUI 观察机制。关键是边界清楚，不要让 Publisher、Task、回调互相套到看不懂。
 
+> **OC 对照记忆：** OC 没有原生响应式框架，想做事件流得引入 RAC 或 RxSwift。Combine 是 Apple 官方的声明式事件流框架。OC 里你用 RAC 的 `RACSignal` 做信号绑定，Swift 里用 Combine 的 `Publisher` 做同样的事。`async/await` 则替代了 OC 里回调式的网络请求写法。
+
 ---
 
 ## 10：SwiftUI 的声明式 UI 和状态驱动怎么落地？
@@ -134,6 +152,8 @@
 > 真正落地时，关键是状态归属清楚。页面临时状态放在 View 内部；复杂业务状态放到 ViewModel 或 Store；父子视图之间只传必要状态和事件，避免多个地方同时维护同一份数据。
 >
 > SwiftUI 常见问题不是不会背属性包装器，而是状态散乱、重复数据源、异步任务和视图生命周期绑得太死。高级实践更强调单向数据流：View 发出意图，状态层处理副作用并产出新状态，View 只负责渲染。
+
+> **OC 对照记忆：** OC 用 UIKit 是命令式的——你手动 `addSubview`、`removeFromSuperview`、改 `label.text`。SwiftUI 是声明式的——你只描述"UI 应该长什么样"，状态变了框架自动更新。思维转变：从"我要怎么操作 UI"变成"我要怎么描述状态"。
 
 ---
 
@@ -147,6 +167,8 @@
 >
 > 治理重点是生命周期清楚：订阅要取消，Task 要随页面释放或消失取消，闭包按生命周期选择 weak 或 unowned，缓存要有上限和淘汰。只靠全局搜索 `weak self` 不够。
 
+> **OC 对照记忆：** 和 OC 内存泄漏原理完全一样。OC 里 Block 强引用 self 导致 VC 不释放，Swift 闭包一样会。OC delegate 用 weak，Swift 也一样。Timer 要 invalidate，通知要 removeObserver，这些你做了 10 年的东西直接平移。区别只是 Swift 多了 Task 和 Combine 订阅这两个新的泄漏点。
+
 ---
 
 ## 12：Swift 和 Objective-C 混编时要注意什么？
@@ -158,6 +180,8 @@
 > 其次是动态能力。Swift 默认更静态，如果方法要给 OC 调用、支持 selector、KVO 或 Swizzling，需要明确暴露成 `@objc` 或 `dynamic`，但这也会牺牲一部分静态优化。
 >
 > 大型项目里我会把混编边界集中在 adapter 层，处理好 NSError/Swift Error、集合可变性、线程回调和 Core Foundation 桥接，避免 Swift 业务代码到处被 OC 约束污染。
+
+> **OC 对照记忆：** 这题本身就是 OC 和 Swift 的对照。核心三件事：① Bridging Header 让 Swift 调 OC；② 自动生成的 `ModuleName-Swift.h` 让 OC 调 Swift；③ OC 的 `NS_ENUM`、`NSError`、`nullable` 要映射成 Swift 的 `enum`、`throws`、`Optional`。你项目里已经有混编经验，把坑讲清楚就行。
 
 ---
 
@@ -173,6 +197,8 @@
 >
 > 坑点是协议扩展里的默认实现走的是静态派发，不是 witness table，所以通过协议类型调用和通过具体类型调用，行为可能不一样。
 
+> **OC 对照记忆：** OC 里所有方法调用都是消息派发（`objc_msgSend`），你最熟的 Runtime 就是干这个的。Swift 有三种派发：struct/final 走静态派发（最快）、class 走函数表派发（类似 C++ 虚表）、`@objc dynamic` 走消息派发（和 OC 一样）。面试时说"OC 全是消息派发，Swift 多了静态和函数表两种优化路径"就够了。
+
 ---
 
 ## 14：Actor 解决了什么问题？重入是什么坑？
@@ -184,6 +210,8 @@
 > 但 Actor 不是"自动无 bug 的锁"。最容易忽略的是重入：Actor 方法里一旦遇到 `await`，当前任务会挂起，其他任务可能进来改状态，恢复后之前读到的状态可能已经过期。
 >
 > 所以我会用 Actor 管状态一致性，但避免在里面做长时间阻塞。关键状态在 `await` 后要重新校验，网络、IO、纯计算和状态提交最好拆清楚。
+
+> **OC 对照记忆：** OC 没有 Actor，你要做线程安全只能手动用 GCD 串行队列（`dispatch_queue_create` + `dispatch_async`）或者 `NSLock`/`@synchronized`。Swift 的 `actor` 就是"编译器帮你管的串行队列"——内部状态自动隔离，外部访问自动 await，不用你自己写 dispatch。重入问题类似于 OC 里串行队列异步任务之间的交错执行。
 
 ---
 
@@ -197,6 +225,8 @@
 >
 > 需要注意，MainActor 不等于所有代码永远同步跑在主线程上。跨 Actor 调用会有挂起点，顺序、取消和对象生命周期仍然要考虑。
 
+> **OC 对照记忆：** OC 里你手动写 `dispatch_async(dispatch_get_main_queue(), ^{ ... })` 把 UI 操作丢回主线程。Swift 的 `@MainActor` 让编译器帮你保证——标了 `@MainActor` 的属性和方法只能在主线程访问，编译不过就跑不起来。从"人为约定"升级成了"编译器检查"。
+
 ---
 
 ## 16：Swift Concurrency 里的结构化并发、取消和错误传播怎么理解？
@@ -208,6 +238,8 @@
 > Swift 的取消是协作式的，不是系统强行杀任务。任务要在合适位置检查取消状态，取消后停止后续工作，避免再更新 UI 或继续占资源。
 >
 > 项目里我会把页面请求、并发加载、批量任务放进清晰的任务作用域里。页面消失时取消任务，子任务失败时明确是整体失败，还是收集部分结果继续降级。
+
+> **OC 对照记忆：** OC 的 GCD 任务是散装的——`dispatch_async` 之后你没法取消它，只能自己用一个 `cancelled` flag 去检查。`NSOperation` 有 `cancel` 方法但也只是设个标记。Swift 的 `Task` 有父子层级关系，父任务取消子任务自动取消，错误自动向上传播。从"散装异步"变成了"有结构的异步"。
 
 ---
 
@@ -221,6 +253,8 @@
 >
 > 不该用的场景是业务语义太复杂、隐藏副作用太多、调试成本太高。比如属性一读写就偷偷发网络请求或改全局状态，会让代码很难维护。
 
+> **OC 对照记忆：** OC 没有 Property Wrapper 这个概念。最接近的是自定义 getter/setter 或者宏。比如 OC 里你写 `@property (nonatomic, copy) NSString *name;` 的 `copy` 语义，Swift 里可以封装成 `@CopyOnSet var name: String`。SwiftUI 的 `@State`、`@Binding` 本质也是 Property Wrapper，只是框架帮你写好了。
+
 ---
 
 ## 18：Swift 或 SwiftUI 项目的性能优化你会关注哪些方向？
@@ -232,6 +266,8 @@
 > 真正影响大的是值类型拷贝开销和泛型实例化。大 struct 频繁传参会触发 COW 拷贝；泛型在类型不明确时可能走装箱路线。遇到热点路径，可以用 `ContiguousArray`、避免协议类型擦盒、或者用 `@inlinable` 让编译器跨模块优化。
 >
 > SwiftUI 里更要注意：View 的 body 计算要轻，状态变化粒度要细，避免一个状态变了导致整个页面重建。用 `Equatable` 遵循让框架做精准 diff，比盲目用 `LazyVStack` 更根本。
+
+> **OC 对照记忆：** OC 全是引用语义，没有 COW 拷贝开销问题，性能优化主要靠 Instruments 找瓶颈（Core Data、图片解码、主线程阻塞）。Swift 多了两个 OC 没有的优化维度：值类型拷贝开销（大 struct 频繁传参）和 SwiftUI 的 body 重算（一个 `@State` 变了整个 body 重跑）。OC 时代你用 Instruments 的经验仍然有用，只是要多关注这两个新坑点。
 
 ---
 
