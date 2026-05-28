@@ -9,13 +9,13 @@
             size: A4;
             margin: 16mm 14mm;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
             line-height: 1.5;
@@ -26,21 +26,21 @@
             margin: 0 auto;
             font-size: 12.5px;
         }
-        
+
         @media print {
             body {
                 padding: 0;
                 background: #fff;
             }
         }
-        
+
         .header {
             text-align: center;
             padding-bottom: 12px;
             border-bottom: 2px solid #007AFF;
             margin-bottom: 16px;
         }
-        
+
         .header h1 {
             font-size: 24px;
             font-weight: 600;
@@ -48,14 +48,14 @@
             margin-bottom: 3px;
             letter-spacing: 2px;
         }
-        
+
         .header .subtitle {
             font-size: 13px;
             color: #007AFF;
             font-weight: 500;
             margin-bottom: 8px;
         }
-        
+
         .contact-info {
             display: flex;
             justify-content: center;
@@ -64,17 +64,17 @@
             font-size: 11.5px;
             color: #555;
         }
-        
+
         .contact-info span {
             display: flex;
             align-items: center;
             gap: 4px;
         }
-        
+
         .section {
             margin-bottom: 14px;
         }
-        
+
         .section-title {
             font-size: 14px;
             font-weight: 600;
@@ -86,14 +86,14 @@
             align-items: center;
             gap: 7px;
         }
-        
+
         .section-title .dot {
             width: 6px;
             height: 6px;
             background: #007AFF;
             border-radius: 50%;
         }
-        
+
         .summary {
             font-size: 12px;
             line-height: 1.7;
@@ -103,13 +103,13 @@
             border-radius: 6px;
             border-left: 3px solid #007AFF;
         }
-        
+
         .skills-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 6px;
         }
-        
+
         .skill-item {
             font-size: 11.5px;
             padding: 5px 9px;
@@ -119,34 +119,34 @@
             align-items: flex-start;
             gap: 7px;
         }
-        
+
         .skill-label {
             font-weight: 600;
             color: #007AFF;
             white-space: nowrap;
             min-width: 68px;
         }
-        
+
         .skill-value {
             color: #444;
         }
-        
+
         .highlight {
             color: #007AFF;
             font-weight: 500;
         }
-        
+
         .experience-item {
             margin-bottom: 12px;
             padding-left: 12px;
             border-left: 2px solid #e5e5e5;
             position: relative;
         }
-        
+
         .experience-item:last-child {
             margin-bottom: 0;
         }
-        
+
         .experience-item::before {
             content: '';
             position: absolute;
@@ -159,7 +159,7 @@
             border: 2px solid #fff;
             box-shadow: 0 0 0 2px #007AFF;
         }
-        
+
         .experience-header {
             display: flex;
             justify-content: space-between;
@@ -167,19 +167,19 @@
             margin-bottom: 5px;
             flex-wrap: wrap;
         }
-        
+
         .experience-title {
             font-size: 13px;
             font-weight: 600;
             color: #1a1a1a;
         }
-        
+
         .experience-company {
             font-size: 12px;
             color: #007AFF;
             font-weight: 500;
         }
-        
+
         .experience-date {
             font-size: 11px;
             color: #888;
@@ -187,12 +187,12 @@
             padding: 1px 8px;
             border-radius: 10px;
         }
-        
+
         .experience-details {
             list-style: none;
             padding: 0;
         }
-        
+
         .experience-details li {
             font-size: 12px;
             line-height: 1.65;
@@ -201,7 +201,7 @@
             position: relative;
             margin-bottom: 2px;
         }
-        
+
         .experience-details li::before {
             content: '▸';
             position: absolute;
@@ -209,7 +209,7 @@
             color: #007AFF;
             font-size: 10px;
         }
-        
+
         .education-item {
             display: flex;
             justify-content: space-between;
@@ -220,25 +220,25 @@
             flex-wrap: wrap;
             gap: 6px;
         }
-        
+
         .education-info {
             display: flex;
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
         }
-        
+
         .education-school {
             font-size: 13px;
             font-weight: 600;
             color: #1a1a1a;
         }
-        
+
         .education-major {
             font-size: 11.5px;
             color: #555;
         }
-        
+
         .education-degree {
             font-size: 11px;
             background: #007AFF;
@@ -246,17 +246,17 @@
             padding: 1px 8px;
             border-radius: 10px;
         }
-        
+
         .education-date {
             font-size: 11px;
             color: #888;
         }
-        
+
         @media print {
             .experience-item {
                 break-inside: avoid;
             }
-            
+
             .section {
                 break-inside: avoid;
             }
@@ -273,17 +273,66 @@
             <span>📍 广州市</span>
         </div>
     </div>
-    
+
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
             个人总结
         </div>
         <div class="summary">
-            近 <span class="highlight">10 年 iOS 开发经验</span>，覆盖智能硬件音视频、金融、社交语音、B2B 交易等业务场景，近两年聚焦智能摄像头 App，负责实时预览、<span class="highlight">WebRTC 直播</span>、SD 卡回放、设备控制等核心链路。擅长 Objective-C / Swift、组件化、性能优化、<span class="highlight">跨层问题定位</span>与稳定性交付。
+            近 <span class="highlight">10 年 iOS 开发经验</span>，覆盖智能硬件音视频、金融、社交语音、B2B 交易等业务场景。近两年聚焦智能摄像头 App，负责实时预览、<span class="highlight">WebRTC 直播</span>、SD 卡回放、设备控制、截图录像与文件下载等核心链路。擅长 Objective-C / Swift 开发、组件化、性能优化、<span class="highlight">跨层问题定位</span>、真机排障与稳定性交付。
         </div>
     </div>
-    
+
+    <div class="section">
+        <div class="section-title">
+            <span class="dot"></span>
+            工作经历
+        </div>
+
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">高级 iOS 开发工程师</span>
+                    <span class="experience-company"> | 广州钱柜物联科技有限公司</span>
+                </div>
+                <span class="experience-date">2024.06 - 至今</span>
+            </div>
+            <ul class="experience-details">
+                <li>负责 V720 智能摄像头 iOS App 核心模块开发，覆盖实时预览、WebRTC 直播、设备控制、SD 卡回放、截图录像、文件下载等核心链路。</li>
+                <li>将实时预览渲染从逐帧 UIImage 方案改为 <span class="highlight">Metal 硬件加速渲染</span>，CPU 平均占用从约 45% 降至约 20%，长时间预览发热反馈减少。</li>
+                <li>梳理 WebRTC 直播与设备控制链路，明确生命周期、DataChannel 指令、状态回包与资源释放边界，推动相关线上 <span class="highlight">crash 率下降约 40%</span>。</li>
+                <li>优化录像分辨率参数传递、MP4 录制输出与文件下载状态隔离，提升录制与下载链路回归稳定性。</li>
+            </ul>
+        </div>
+
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">高级 iOS 开发工程师</span>
+                    <span class="experience-company"> | 印孚瑟斯技术有限公司</span>
+                </div>
+                <span class="experience-date">2021.05 - 2024.05</span>
+            </div>
+            <ul class="experience-details">
+                <li>负责汇丰银行个人金融 iOS 应用 Contact Details 核心模块，基于 <span class="highlight">VIPER 架构</span>实现输入验证、国际化、无障碍适配、Jenkins CI/CD 与自动化测试。</li>
+            </ul>
+        </div>
+
+        <div class="experience-item">
+            <div class="experience-header">
+                <div>
+                    <span class="experience-title">早期 iOS 开发经历</span>
+                    <span class="experience-company"> | 多行业项目交付</span>
+                </div>
+                <span class="experience-date">2016.06 - 2021.04</span>
+            </div>
+            <ul class="experience-details">
+                <li>参与 B2B ERP、语音社交、电商、智能设备回收类 iOS App 开发，覆盖组件化、本地缓存、弱网同步、多机型适配与性能优化。独立负责 Whisper 语音社交 iOS 端全流程交付。</li>
+            </ul>
+        </div>
+    </div>
+
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
@@ -316,55 +365,7 @@
             </div>
         </div>
     </div>
-    
-    <div class="section">
-        <div class="section-title">
-            <span class="dot"></span>
-            工作经历
-        </div>
-        
-        <div class="experience-item">
-            <div class="experience-header">
-                <div>
-                    <span class="experience-title">高级 iOS 开发工程师</span>
-                    <span class="experience-company"> | 广州钱柜物联科技有限公司</span>
-                </div>
-                <span class="experience-date">2024.06 - 至今</span>
-            </div>
-            <ul class="experience-details">
-                <li>负责 V720 智能摄像头 iOS App 核心模块开发，覆盖实时预览、WebRTC 直播、设备控制、SD 卡回放、截图录像、文件下载等核心链路。</li>
-                <li>将实时预览渲染从逐帧 UIImage 方案改为 <span class="highlight">Metal 硬件加速渲染</span>，CPU 平均占用从约 45% 降至约 20%，长时间预览发热反馈减少。</li>
-                <li>维护普通直播与 WebRTC 双链路稳定性，梳理生命周期、指令与状态回包边界，推动相关线上 <span class="highlight">crash 率下降约 40%</span>。</li>
-            </ul>
-        </div>
-        
-        <div class="experience-item">
-            <div class="experience-header">
-                <div>
-                    <span class="experience-title">高级 iOS 开发工程师</span>
-                    <span class="experience-company"> | 印孚瑟斯技术有限公司</span>
-                </div>
-                <span class="experience-date">2021.05 - 2024.05</span>
-            </div>
-            <ul class="experience-details">
-                <li>负责汇丰银行个人金融 iOS 应用 Contact Details 核心模块，基于 <span class="highlight">VIPER 架构</span>实现输入验证、国际化、无障碍适配、Jenkins CI/CD 与自动化测试。</li>
-            </ul>
-        </div>
-        
-        <div class="experience-item">
-            <div class="experience-header">
-                <div>
-                    <span class="experience-title">早期 iOS 开发经历</span>
-                    <span class="experience-company"> | 多行业项目交付</span>
-                </div>
-                <span class="experience-date">2016.06 - 2021.04</span>
-            </div>
-            <ul class="experience-details">
-                <li>参与 B2B ERP、语音社交、电商、智能设备回收类 iOS App 开发，覆盖组件化、本地缓存、弱网同步、多机型适配与性能优化。独立负责 Whisper 语音社交 iOS 端全流程交付。</li>
-            </ul>
-        </div>
-    </div>
-    
+
     <div class="section">
         <div class="section-title">
             <span class="dot"></span>
