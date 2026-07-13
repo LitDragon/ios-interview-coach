@@ -2,7 +2,7 @@
 
 > 目标：只保留高级 OC/iOS 面试里最核心、最高频、最值得背的题。
 >
-> 答题原则：**一句话结论 + 2 到 3 个关键点 + 一个坑点**。不要背源码细节，能把机制、项目用法和风险说清楚即可。
+> 答题原则：先用 **30 秒结论**回答，再按“关键机制、项目用法、风险与取舍”展开到 90 秒。不要背源码细节，重点是能用真实项目案例支撑。
 
 ---
 
@@ -29,7 +29,7 @@
 
 > **追问：** ARC 下 `autorelease` 对象什么时候释放？
 >
-> 答：默认在当前 RunLoop 迭代结束时释放。如果手动加了 `@autoreleasepool`，则在作用域结束时释放。
+> 答：对象会在它所在的 autorelease pool 被 drain 时收到 `release`；主线程通常由 RunLoop 周边的系统池管理，但不能把它绝对理解成“每个对象都在当前迭代结束释放”。手动 `@autoreleasepool` 会在作用域结束时 drain 该池。
 
 > **追问：** `weak` 和 `assign` 修饰对象有什么区别？
 >
@@ -53,7 +53,7 @@
 
 > **追问：** Block 属性为什么推荐用 `copy`？
 >
-> 答：Block 默认在栈上，作用域结束就释放；`copy` 会把 Block 拷贝到堆上，延长生命周期，避免野指针。
+> 答：Block 是否位于栈、全局区或堆上取决于捕获和逃逸方式。ARC 会在需要时自动把逃逸 Block 移到堆上，属性仍推荐声明为 `copy`，用于明确保存独立 Block 值的语义并兼容既有约定；不要再简单背成“所有 Block 默认都在栈上”。
 
 ---
 
@@ -109,11 +109,11 @@ self.myBlock = ^{
 
 > **追问：** `MLeaksFinder` 的原理是什么？
 >
-> 答：它 hook 了 `UIViewController` 的 `viewDidDisappear`，在页面消失后延迟几秒检查 `self` 是否被释放，没释放就认为泄漏。
+> 答：它会利用页面和容器生命周期 Hook，在对象按预期应该释放后延迟检查其存活状态，并继续沿视图层级提示可疑对象。页面暂时消失不一定代表应该销毁，所以结果仍需结合导航栈和业务生命周期确认。
 
 > **追问：** `dealloc` 里需要做什么？
 >
-> 答：移除通知、销毁 Timer、断开 KVO。ARC 下不需要调 `[super dealloc]`。
+> 答：释放由当前对象持有的非 ARC 资源，并停止仍可能回调该对象的 Timer、任务或 block observer。旧式 KVO 和通知注册要按 API 契约解除；iOS 9+ selector 通知观察者通常会自动注销，block observer 仍要管理 token。ARC 下不能调用 `[super dealloc]`。
 
 ---
 
@@ -211,12 +211,11 @@ void dynamicMethodIMP(id self, SEL _cmd) {
 // UIView+Frame.h
 @interface UIView (Frame)
 @property (nonatomic, assign) CGFloat x;
+@property (nonatomic, copy, nullable) NSString *customTag;
 @end
 
 // UIView+Frame.m
 #import <objc/runtime.h>
-
-static const char kXKey;
 
 @implementation UIView (Frame)
 
@@ -264,7 +263,7 @@ static const char kXKey;
 
 > **追问：** `+load` 的调用顺序是什么？
 >
-> 答：先调用类的 `+load`（按编译顺序），再调用分类的 `+load`；父类优先于子类。
+> 答：父类的 `+load` 先于子类，类本身的 `+load` 先于附加到它的分类。不同镜像、不同分类之间的具体顺序不应作为业务契约，也不要依赖工程文件中的排列顺序。
 
 > **追问：** `+initialize` 被子类继承会怎样？
 >
@@ -278,7 +277,7 @@ static const char kXKey;
 
 > KVO 的核心是 Runtime 动态生成子类，并把被观察对象的 `isa` 指向这个子类。子类重写 setter，在赋值前后插入通知逻辑，所以通过 setter 改属性时，观察者能收到回调。
 >
-> 风险主要有三个：重复添加或移除会崩；直接改成员变量不走 setter，就不会触发 KVO；回调里如果对象关系复杂，也容易引出生命周期问题。
+> 风险主要有三个：旧式字符串 API 重复移除或观察关系管理错误可能崩溃；直接修改成员变量通常不会触发自动 KVO；回调和观察者生命周期复杂时容易产生竞态。新代码优先使用返回观察 token 的 API 管理生命周期。
 >
 > KVC 是通过字符串 key 读写属性或成员变量，灵活但不安全。key 写错、类型不匹配、给非对象设 nil，都可能崩溃。所以业务里能用明确方法和属性访问时，不会优先用 KVC。
 
@@ -288,7 +287,7 @@ static const char kXKey;
 
 > **追问：** KVC 取值时的查找顺序是什么？
 >
-> 答：先找 `getKey` -> `key` -> `isKey` -> `_key`，找不到再调 `valueForUndefinedKey:`。
+> 答：普通 getter 先查找 `getKey`、`key`、`isKey`、`_getKey`；之后还可能检查集合访问器。如果允许直接访问成员变量，再按 `_key`、`_isKey`、`key`、`isKey` 查找，最终才进入 `valueForUndefinedKey:`。面试时应先说明 getter、集合和 ivar 是不同阶段。
 
 ---
 
@@ -322,7 +321,7 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 
 > **追问：** `dispatch_barrier_async` 的作用是什么？
 >
-> 答：在并发队列中，barrier 之前的任务正常并发执行，barrier 任务独占执行（等前面的都完成，后面的等它完成），常用于读写锁保护。
+> 答：在自己创建的并发队列上，barrier 会等待之前提交的任务完成，再独占执行，之后的任务继续并发，常用于读多写少的状态保护。提交到系统全局并发队列时不能依赖同样的屏障语义。
 
 > **追问：** `dispatch_once` 的原理是什么？
 >
@@ -344,7 +343,7 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 
 > **追问：** weak 的性能开销体现在哪里？
 >
-> 答：每次访问 weak 指针，Runtime 需要查弱引用表确认对象是否存活；高频访问时建议先赋值给 strong 变量。
+> 答：读取 weak 需要通过 Runtime 的安全加载流程，在对象释放和置 nil 之间做同步，成本高于普通 strong 读取。一个作用域内需要多次使用时，可先安全提升为 strong 临时变量，同时保证本次使用期间对象存活。
 
 ---
 
@@ -461,13 +460,13 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 
 > 离屏渲染是指 GPU 在当前屏幕缓冲区之外，额外开辟一块离屏缓冲区来渲染图层，然后再合成回屏幕缓冲区。这比普通渲染多了创建缓冲区和上下文切换的开销，容易导致帧率下降。
 >
-> 常见触发场景：`cornerRadius + masksToBounds`（圆角裁剪）、`shadow`（阴影）、`mask`（遮罩）、`allowsGroupOpacity`（组透明）。系统为了正确混合这些效果，必须先把内容渲染到离屏缓冲区。
+> 可能触发离屏渲染的场景包括复杂 mask、无法确定路径的动态阴影、组透明以及部分裁剪组合。现代系统会优化常见圆角，`cornerRadius + masksToBounds` 不能再绝对判断为一定离屏，必须结合系统版本、图层内容和实际检测结果确认。
 >
-> 优化方式：圆角用 `CAShapeLayer` + `UIBezierPath` 裁剪，或者直接用带圆角的图片；阴影用 `shadowPath` 指定路径，避免实时计算；能用图片代替的视觉效果，优先用图片。
+> 优化方式：阴影优先提供 `shadowPath`，避免每帧推导阴影轮廓；复杂静态效果可以预渲染；列表中减少不必要的 mask、透明叠加和图层数量。`CAShapeLayer` 作为 mask 本身也可能产生额外合成，不能把它当作通用解法。
 
 > **追问：** `clipsToBounds` 和 `masksToBounds` 有什么区别？
 >
-> 答：本质一样，`clipsToBounds` 是 `UIView` 属性，`masksToBounds` 是 `CALayer` 属性，两者互相映射。设置圆角时两者都会触发离屏渲染。
+> 答：`clipsToBounds` 是 UIView 层的接口，底层对应 layer 的 `masksToBounds`，都表示裁剪超出边界的内容；是否产生离屏渲染取决于图层组合和系统优化，不能只凭这两个属性下结论。
 
 > **追问：** 如何检测离屏渲染？
 >
@@ -481,13 +480,13 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 
 > 包体积优化主要从三个方向入手：资源、代码、编译选项。
 >
-> 资源方面：图片用 Asset Catalog 管理，支持按需加载；能用 PDF 矢量图的不用 PNG；音频视频按需下载；删除未使用的资源文件。代码方面：开启 `Strip Linked Product`、`Dead Code Stripping` 移除无用代码；避免重复引入三方库；用 Swift 的模块化减少链接体积。编译选项：开启 `Optimize Size`（Oz）优化；启用 Bitcode（如果还需要的话）。
+> 资源方面：用 Asset Catalog 管理图片并利用 App Thinning，清理未使用和重复资源，音视频按业务需要下载；PDF 矢量资源仍要关注编译后的实际产物。代码方面：开启 Strip 与 Dead Code Stripping，分析重复三方库、静态库和 Swift 泛型膨胀。编译选项可以评估 `-Osize`，Bitcode 已不再是当前 iOS 提交流程的优化项。
 >
 > 重点是先分析再优化，用 `LinkMap` 文件分析各模块占用体积，找到大头再针对性处理。
 
 > **追问：** Asset Catalog 相比直接放图片有什么优势？
 >
-> 答：自动管理 2x/3x 倍图；支持按设备和内存级别按需加载（On Demand Resource）；编译时自动优化压缩。
+> 答：可以统一管理倍率、设备和外观变体，并配合 App Thinning 生成目标设备需要的资源。On-Demand Resources 需要单独配置资源标签和下载策略，不是把图片放进 Asset Catalog 就自动按需下载。
 
 > **追问：** `LinkMap` 文件是什么？怎么用？
 >
@@ -502,9 +501,9 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 > 启动优化要先分清两个阶段。
 >
 > **pre-main 阶段**（从进程创建到 `main()` 调用）：
-> - 加载 dylib：动态库越多，加载越慢。优化：减少动态库数量，合并小 framework，用 `@executable_path` 替代绝对路径。
+> - 加载镜像：动态库和初始化工作越多，启动成本通常越高。优化应以实际启动测量为依据，减少非必要动态库和启动期初始化。
 > - Rebase & Bind：修复指针和符号引用。优化：减少 ObjC 类和分类数量，清理无用类。
-> - ObjC Setup：注册类和分类，执行 `+load`。优化：`+load` 里的逻辑延后或移除，用 `+initialize` 替代。
+> - ObjC Setup：注册类和分类并执行 `+load`。优化重点是移除 `+load` 中的重活，改为显式、可测量的启动任务或真正按需初始化；不能笼统改成 `+initialize`，否则可能把耗时转移到首次消息路径。
 >
 > **post-main 阶段**（从 `main()` 到首屏展示）：
 > - 首屏必须的初始化同步做，非首屏的延后或异步。
@@ -512,7 +511,7 @@ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 > - 首页数据请求提前到启动时，用缓存先展示再刷新。
 > - 避免首屏加载大图、复杂布局计算。
 >
-> 测量用 `DYLD_PRINT_STATISTICS` 看 pre-main 耗时；`XCTest` 的 `measureBlock` 或手动打点看 post-main 各阶段耗时。
+> 测量优先使用 Instruments 的 App Launch、Xcode Organizer 启动指标、`os_signpost` 和 MetricKit。`DYLD_PRINT_STATISTICS` 可作为特定环境下的辅助信息，但不能替代真机与线上启动数据。
 
 **pre-main 关键阶段示意图：**
 
@@ -530,11 +529,11 @@ main()
 
 > **追问：** 怎么知道 pre-main 阶段哪些 `+load` 耗时？
 >
-> 答：在 Xcode 的 Environment Variables 里添加 `OBJC_PRINT_LOAD_METHODS=YES`，会打印每个 `+load` 的调用耗时。
+> 答：`OBJC_PRINT_LOAD_METHODS=YES` 可以帮助确认哪些类和分类执行了 `+load`，但不会直接给出每个方法的可靠耗时。耗时定位应结合 Instruments、符号化采样或受控埋点，并避免为了测量大范围 Swizzle `+load`。
 
 > **追问：** 首页数据请求怎么提前到启动时？
 >
-> 答：在 `didFinishLaunchingWithOptions` 里立即发起请求，用缓存数据先渲染首屏；请求回来后增量更新。也可以用预加载框架在后台线程提前请求。
+> 答：先确认请求是否真的阻塞首屏数据，再决定在启动流程的哪个阶段预加载。网络请求可以尽早异步发起，但不能增加主线程同步工作；首屏优先读取缓存，请求返回后增量更新，并用启动指标验证收益。
 
 ---
 

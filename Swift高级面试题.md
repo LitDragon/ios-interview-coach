@@ -2,7 +2,7 @@
 
 > 目标：只保留高级 Swift/iOS 面试里最核心、最高频、最值得背的题。
 >
-> 答题原则：**一句话结论 + 2 到 3 个关键点 + 一个坑点**。不要背语法清单，也不要陷入源码细节，重点说清机制、项目用法和取舍。
+> 答题原则：先用 **30 秒结论**回答，再按“关键机制、项目用法、风险与取舍”展开到 90 秒。不要背语法清单，也不要在没有项目证据时陷入源码细节。
 
 ---
 
@@ -27,7 +27,7 @@
 >
 > 项目里我一般让 Model、配置、状态快照用 struct；需要身份、继承、共享生命周期、和 UIKit/OC 体系交互的对象用 class。核心是看它有没有"身份"和"共享可变状态"。
 
-> **OC 对照记忆：** OC 里全是 class，全是引用语义。你把一个 NSMutableArray 传给别人，别人改了你的也跟着变。Swift 引入 struct 值语义就是为了消灭这种"谁改了我的数据"的问题。你项目里的 OC Model 都是 class，如果迁到 Swift，优先考虑 struct 就对了。
+> **OC 对照记忆：** OC 对象通常是 class 和引用语义，例如多个变量指向同一个 `NSMutableArray` 时会共享修改；但 C struct、标量等仍是值语义。迁移 OC Model 时不能机械改成 struct，仍要根据身份、共享状态和桥接边界判断。
 
 > **追问：** struct 一定在栈上吗？
 >
@@ -49,7 +49,7 @@
 >
 > 但 COW 不等于线程安全。多个线程同时读写同一个变量或同一份共享状态，仍然可能数据竞争。自定义 COW 类型时，也要保证唯一引用判断和写入复制逻辑正确。
 
-> **OC 对照记忆：** OC 的 `copy` 属性是真拷贝，赋值就复制一份。Swift 的 COW 是延迟拷贝——读的时候共享，只有写的时候才复制。所以 Swift 的 Array 频繁赋值不会像 OC 的 NSMutableArray copy 那样每次都产生新对象，性能好很多。
+> **OC 对照记忆：** OC 的 `copy` 会向对象发送 `copyWithZone:`，具体是返回自身、浅拷贝还是深拷贝取决于类型实现；Swift 标准集合的 COW 则是在修改时检查底层存储是否唯一，不唯一才复制。
 
 **自定义 COW 类型代码：**
 
@@ -164,9 +164,9 @@ class ViewController: UIViewController {
 
 > **OC 对照记忆：** OC 也有 protocol，但没有默认实现，每个遵循者都得手写所有方法。Swift 的协议扩展可以给默认实现，等于把 category 的能力安全地融入了协议。OC 里想给 protocol 加默认实现只能靠 category 给 NSObject 扩展，容易命名冲突。Swift 的协议导向本质上是"更安全的 category + 更灵活的多继承"。
 
-> **追问：** 协议扩展的默认实现是动态派发吗？
+> **追问：** 协议扩展的默认实现怎么派发？
 >
-> 答：不是。协议扩展里的默认实现走静态派发，通过协议类型调用和通过具体类型调用行为可能不同。这是高频陷阱。
+> 答：如果方法是协议 requirement，通过协议类型调用会走 witness table；如果方法只定义在 extension、没有出现在协议 requirement 中，则按静态类型选择实现，通过协议类型和具体类型调用可能得到不同结果。
 
 > **追问：** 协议和泛型怎么选？
 >
@@ -178,7 +178,7 @@ class ViewController: UIViewController {
 
 **口语答案：**
 
-> `some` 是不透明类型，调用方不知道具体是什么类型，但编译器知道它始终是某一种具体类型，所以保留了完整的静态类型信息，性能也更好。SwiftUI 里到处用 `some View` 就是这个原因。
+> 返回位置的 `some` 是不透明类型：调用方看不到具体类型，但实现方必须始终返回同一种具体类型。参数位置的 `some P` 更接近泛型参数的简写。两者都保留静态类型信息，SwiftUI 的 `some View` 是典型场景。
 >
 > `any` 是存在类型，可以在运行时装不同的实现进去，更灵活，但有包装成本和动态派发开销。需要异构集合（比如一个数组里放不同类型的协议遵循者）时，必须用 `any`。
 >
@@ -203,11 +203,11 @@ shapes.forEach { $0.draw() }
 
 > **追问：** `some` 能用在函数参数以外的地方吗？
 >
-> 答：Swift 5.7 起可以。`some` 可用于属性、函数参数、返回值。但 `some` 要求类型一致，不能返回不同的具体类型。
+> 答：可以用于返回值、部分属性声明和函数参数；其中参数位置的 opaque parameter syntax 是 Swift 5.7 引入的。返回位置的 `some` 要求每条返回路径对应同一种具体类型。
 
 > **追问：** `any` 的性能开销在哪？
 >
-> 答：类型擦除需要装箱（existential container），堆分配 + 间接寻址 + 动态派发。频繁调用的热路径慎用。
+> 答：存在类型通过 existential container 保存值和 witness table，调用通常需要间接派发；较大的值或特定布局可能发生堆装箱，但不是所有 `any` 都会堆分配。只有在性能热点并经测量确认后才需要针对性优化。
 
 ---
 
@@ -243,7 +243,7 @@ shapes.forEach { $0.draw() }
 >
 > 真正要避免的是混用失控。比如在 Task 里塞大量同步阻塞任务，或者在 GCD 回调里直接乱改 MainActor 状态。并发边界要统一，UI 状态要回到主线程语义。
 
-> **OC 对照记忆：** OC 里只能用 GCD（`dispatch_async`）和 NSOperation，异步代码全靠回调嵌套，容易"回调地狱"。Swift 的 `async/await` 把异步写成同步风格，代码从左到右读就行。`Actor` 本质上是 GCD 串行队列 + 编译器帮你检查线程安全。你以前手动 `dispatch_queue_create` 做的事，Swift 用 `actor` 一行搞定。
+> **OC 对照记忆：** OC 常用 GCD 和 NSOperation 组织异步任务；Swift Concurrency 在语言层增加了任务层级、取消、错误传播和 Actor 隔离。Actor 可以类比受保护的串行状态入口，但存在重入语义，不能简单等同于 GCD 串行队列。
 
 **GCD vs async/await 代码对比：**
 
@@ -251,9 +251,14 @@ shapes.forEach { $0.draw() }
 // GCD 回调风格
 func fetchUser(completion: @escaping (Result<User, Error>) -> Void) {
     URLSession.shared.dataTask(with: url) { data, _, error in
-        if let error { completion(.failure(error)); return }
-        let user = try! JSONDecoder().decode(User.self, from: data!)
-        DispatchQueue.main.async { completion(.success(user)) }
+        do {
+            if let error { throw error }
+            guard let data else { throw URLError(.badServerResponse) }
+            let user = try JSONDecoder().decode(User.self, from: data)
+            DispatchQueue.main.async { completion(.success(user)) }
+        } catch {
+            DispatchQueue.main.async { completion(.failure(error)) }
+        }
     }.resume()
 }
 
@@ -266,7 +271,7 @@ func fetchUser() async throws -> User {
 
 > **追问：** `Task` 和 `DispatchQueue.global().async` 有什么区别？
 >
-> 答：Task 有结构化并发、支持取消和优先级、自动继承 Actor 上下文；GCD 是底层调度原语，没有取消和错误传播机制。
+> 答：`Task {}` 创建的是非结构化任务，但会继承当前 Actor 上下文、优先级和 Task Local；它有取消句柄和错误结果。GCD 是队列调度原语，本身不提供同等级的任务层级和错误传播模型。
 
 > **追问：** 旧项目全用 GCD，要迁移到 async/await 吗？
 >
@@ -358,7 +363,7 @@ func fetchUser() async throws -> User {
 
 > **追问：** `@objc` 和 `dynamic` 什么关系？
 >
-> 答：`@objc` 让方法暴露给 OC Runtime；`dynamic` 在此基础上启用消息派发，支持 KVO 和 Swizzling。`dynamic` 必须同时标 `@objc`。
+> 答：`@objc` 让兼容声明暴露给 Objective-C Runtime；`dynamic` 强制使用动态消息派发，并在可暴露的声明上隐含 Objective-C Runtime 入口，不必机械地同时手写两个标记。是否支持 KVO 还要满足对象、属性和观察方式等条件。
 
 ---
 
@@ -372,13 +377,13 @@ func fetchUser() async throws -> User {
 >
 > 项目里不用为了微优化到处加 `final`，但确定不需要继承时加 `final` 可以表达设计意图，也给编译器优化空间。需要暴露给 OC Runtime 时，再明确选择动态能力。
 >
-> 坑点是协议扩展里的默认实现走的是静态派发，不是 witness table，所以通过协议类型调用和通过具体类型调用，行为可能不一样。
+> 坑点是要区分协议 requirement 和 extension-only 方法：requirement 的实现通过 witness table 派发；只存在于 extension 的方法按静态类型选择，因此通过协议类型和具体类型调用可能不同。
 
 > **OC 对照记忆：** OC 里所有方法调用都是消息派发（`objc_msgSend`），你最熟的 Runtime 就是干这个的。Swift 有三种派发：struct/final 走静态派发（最快）、class 走函数表派发（类似 C++ 虚表）、`@objc dynamic` 走消息派发（和 OC 一样）。面试时说"OC 全是消息派发，Swift 多了静态和函数表两种优化路径"就够了。
 
 > **追问：** 协议方法走哪种派发？
 >
-> 答：协议类型调用走 witness table（函数表）；协议扩展的默认实现走静态派发。这是高频陷阱——通过协议类型调用和具体类型调用可能行为不同。
+> 答：协议 requirement 通过协议类型调用时走 witness table；extension-only 方法按静态类型派发。默认实现是否进入 witness table，取决于该方法是不是协议 requirement。
 
 > **追问：** `final` 真的能提升性能吗？
 >
@@ -390,13 +395,13 @@ func fetchUser() async throws -> User {
 
 **口语答案：**
 
-> Actor 主要解决共享可变状态的数据竞争问题。它把内部状态隔离起来，外部访问通常需要 `await`，同一时间只允许一个任务进入 Actor 的隔离上下文。
+> Actor 主要解决共享可变状态的数据竞争问题。它把内部状态隔离起来，外部跨隔离访问通常需要 `await`；同一时刻只执行一段 Actor 隔离代码，但任务在 `await` 挂起后，其他任务可以进入，这就是重入。
 >
 > 但 Actor 不是"自动无 bug 的锁"。最容易忽略的是重入：Actor 方法里一旦遇到 `await`，当前任务会挂起，其他任务可能进来改状态，恢复后之前读到的状态可能已经过期。
 >
 > 所以我会用 Actor 管状态一致性，但避免在里面做长时间阻塞。关键状态在 `await` 后要重新校验，网络、IO、纯计算和状态提交最好拆清楚。
 
-> **OC 对照记忆：** OC 没有 Actor，你要做线程安全只能手动用 GCD 串行队列（`dispatch_queue_create` + `dispatch_async`）或者 `NSLock`/`@synchronized`。Swift 的 `actor` 就是"编译器帮你管的串行队列"——内部状态自动隔离，外部访问自动 await，不用你自己写 dispatch。重入问题类似于 OC 里串行队列异步任务之间的交错执行。
+> **OC 对照记忆：** OC 常用串行队列、锁或 `@synchronized` 保护共享状态。Actor 把隔离规则加入类型系统，但它允许在 `await` 处重入，因此不能照搬“串行队列中的一个任务会连续执行到底”的假设。
 
 **Actor 使用代码：**
 
@@ -436,7 +441,7 @@ actor Cache {
 
 > **追问：** Actor 和 `NSLock` 比有什么优势？
 >
-> 答：Actor 由编译器保证隔离，不会忘记解锁；支持 `await` 异步操作；自动集成到 Swift Concurrency 的取消和优先级系统。`NSLock` 更轻量但需手动管理。
+> 答：Actor 由编译器检查隔离边界，适合保护具有明确所有权的异步状态；锁适合短小、同步的临界区。Actor 方法可以挂起并发生重入，锁则不能跨 `await` 持有，两者不能只按性能简单替换。
 
 > **追问：** 怎么解决 Actor 重入问题？
 >
@@ -454,7 +459,7 @@ actor Cache {
 >
 > 需要注意，MainActor 不等于所有代码永远同步跑在主线程上。跨 Actor 调用会有挂起点，顺序、取消和对象生命周期仍然要考虑。
 
-> **OC 对照记忆：** OC 里你手动写 `dispatch_async(dispatch_get_main_queue(), ^{ ... })` 把 UI 操作丢回主线程。Swift 的 `@MainActor` 让编译器帮你保证——标了 `@MainActor` 的属性和方法只能在主线程访问，编译不过就跑不起来。从"人为约定"升级成了"编译器检查"。
+> **OC 对照记忆：** OC 里通常手动派发到主队列更新 UI。`@MainActor` 把声明隔离到主 Actor，跨隔离访问由编译器检查并通过 `await` 切换执行器；它增强了主线程语义，但仍要注意旧 OC 回调、同步入口和具体编译模式的边界。
 
 > **追问：** `@MainActor` 和 `DispatchQueue.main.async` 有什么区别？
 >
@@ -476,11 +481,11 @@ actor Cache {
 >
 > 项目里我会把页面请求、并发加载、批量任务放进清晰的任务作用域里。页面消失时取消任务，子任务失败时明确是整体失败，还是收集部分结果继续降级。
 
-> **OC 对照记忆：** OC 的 GCD 任务是散装的——`dispatch_async` 之后你没法取消它，只能自己用一个 `cancelled` flag 去检查。`NSOperation` 有 `cancel` 方法但也只是设个标记。Swift 的 `Task` 有父子层级关系，父任务取消子任务自动取消，错误自动向上传播。从"散装异步"变成了"有结构的异步"。
+> **OC 对照记忆：** GCD block 本身没有统一的取消和错误传播模型，NSOperation 的取消同样需要任务协作。Swift 中由 `async let` 或 TaskGroup 创建的结构化子任务才具有明确的父子生命周期与错误传播；普通 `Task {}` 仍是非结构化任务，需要自行管理句柄。
 
-> **追问：** `TaskGroup` 和多次 `Task.init` 有什么区别？
+> **追问：** `TaskGroup` 和多次创建 `Task {}` 有什么区别？
 >
-> 答：`TaskGroup` 是结构化并发，子任务随作用域结束自动取消和等待；`Task.init` 创建独立任务，需手动管理生命周期和取消。
+> 答：`TaskGroup` 是结构化并发，作用域结束前会等待子任务完成；需要提前停止剩余任务时要显式调用 `cancelAll()`，错误路径会按相应 API 传播和清理。`Task {}` 创建非结构化任务，需要持有句柄并管理取消和结果。
 
 > **追问：** 协作式取消要手动检查吗？
 >
@@ -516,15 +521,15 @@ actor Cache {
 
 > Swift 性能优化先看编译器能帮你多少。`final`、`private`、`whole module optimization` 能让编译器做更多静态内联和去虚化，但这些是锦上添花，不是主要矛盾。
 >
-> 真正影响大的是值类型拷贝开销和泛型实例化。大 struct 频繁传参会触发 COW 拷贝；泛型在类型不明确时可能走装箱路线。遇到热点路径，可以用 `ContiguousArray`、避免协议类型擦盒、或者用 `@inlinable` 让编译器跨模块优化。
+> 真正影响大的是算法、内存分配、引用计数、桥接和数据布局。大值类型可能产生复制成本，但只有采用共享引用存储并实现唯一性检查的类型才属于 COW；泛型通常可以特化，存在类型才更容易引入间接派发或装箱。优化前应先用 Instruments 和基准测试确认热点。
 >
-> SwiftUI 里更要注意：View 的 body 计算要轻，状态变化粒度要细，避免一个状态变了导致整个页面重建。用 `Equatable` 遵循让框架做精准 diff，比盲目用 `LazyVStack` 更根本。
+> SwiftUI 里要区分 body 重新计算、视图更新和实际渲染。应保持 body 轻量、缩小状态依赖范围并稳定视图身份；`EquatableView` 只适合能够证明比较成本更低的局部场景，不能作为通用的“精准 diff”开关。
 
-> **OC 对照记忆：** OC 全是引用语义，没有 COW 拷贝开销问题，性能优化主要靠 Instruments 找瓶颈（Core Data、图片解码、主线程阻塞）。Swift 多了两个 OC 没有的优化维度：值类型拷贝开销（大 struct 频繁传参）和 SwiftUI 的 body 重算（一个 `@State` 变了整个 body 重跑）。OC 时代你用 Instruments 的经验仍然有用，只是要多关注这两个新坑点。
+> **OC 对照记忆：** OC 对象以引用语义为主，Swift 还需要关注值类型复制、泛型特化和存在类型开销；但两者都应先用 Instruments、MetricKit 或基准测试定位瓶颈，不能仅凭语言特性推断性能问题。
 
 > **追问：** SwiftUI 里怎么减少 body 重算？
 >
-> 答：状态粒度要细（拆成多个 `@State`）；用 `Equatable` 遵循让框架精准 diff；避免在 body 里做重计算；用 `LazyVStack` 延迟加载长列表。
+> 答：缩小每个子视图读取的状态范围，保持身份稳定，避免在 body 中做重计算，并使用懒加载容器处理长列表。只有测量确认有收益时，再考虑 `EquatableView` 等局部优化。
 
 > **追问：** `@inlinable` 什么时候用？
 >
@@ -536,13 +541,13 @@ actor Cache {
 
 **口语答案：**
 
-> Swift 6 最大的变化是**严格并发检查默认开启**。编译器会强制检查数据竞争，不合规的代码直接编译失败，从运行时崩溃变成编译期拦截。
+> Swift 6 语言模式最重要的变化是**完整严格并发检查成为语言规则的一部分**。编译器可以发现大量跨隔离域访问和非 `Sendable` 传递问题，但不能证明程序不存在所有数据竞争。
 >
-> 关键特性包括：Region Isolation（跨并发域传递值类型时的安全检查）、全局变量必须隔离（`nonisolated(unsafe)` 显式标注不安全访问）、`Sending` 标注（显式声明值可以跨并发域传递）。
+> 面试重点应放在 Actor isolation、`Sendable`、`@Sendable`、全局与静态状态隔离、region-based isolation，以及 `sending` 参数和结果表达的所有权转移。`nonisolated(unsafe)` 只是绕过部分隔离检查的逃生口，不是常规迁移方案。
 >
-> 迁移策略：不要一次性开启严格模式。先用 Swift 5 模式 + `StrictConcurrency=complete` 逐步修复警告，再升级到 Swift 6。混编项目边界要特别注意 `@Sendable` 和 `@MainActor` 标注。
+> 迁移策略：先在 Swift 5 语言模式下把 `SWIFT_STRICT_CONCURRENCY` 提升到 `complete`，逐模块修复警告并梳理隔离边界，再切换 Swift 6 语言模式。混编边界要特别核对回调线程、`@Sendable`、`@MainActor` 和旧 SDK 标注。
 
-> **OC 对照记忆：** OC 没有编译期并发检查，线程安全全靠开发者自觉（GCD、锁、`@synchronized`）。Swift 6 把"运行时才发现数据竞争"变成"编译期就拦住"。你以前 OC 项目里靠 Instruments 的 Thread Sanitizer 抓竞态，Swift 6 直接让编译器帮你抓。
+> **OC 对照记忆：** OC 的线程安全主要依靠队列、锁和运行时工具。Swift 6 严格并发检查能在编译期发现一部分隔离和跨域传递问题，Thread Sanitizer 仍用于发现编译器无法证明或来自底层代码的运行时数据竞争，两者不能互相替代。
 
 > **追问：** Region Isolation 是什么？
 >
@@ -569,28 +574,33 @@ actor Cache {
 **@Observable vs ObservableObject 代码对比：**
 
 ```swift
+import Observation
+import SwiftUI
+
 // iOS 17+：@Observable
 @Observable
-class UserViewModel {
+final class ObservableUserViewModel {
     var name: String = ""
     var age: Int = 0
 }
 
-struct UserView: View {
-    var viewModel: UserViewModel
+struct ObservableUserView: View {
+    @State private var viewModel = ObservableUserViewModel()
+
     var body: some View {
         Text(viewModel.name) // 只追踪 name，age 变了不重算
     }
 }
 
 // iOS 13+：ObservableObject
-class UserViewModel: ObservableObject {
+final class LegacyUserViewModel: ObservableObject {
     @Published var name: String = ""
     @Published var age: Int = 0
 }
 
-struct UserView: View {
-    @ObservedObject var viewModel: UserViewModel
+struct LegacyUserView: View {
+    @ObservedObject var viewModel: LegacyUserViewModel
+
     var body: some View {
         Text(viewModel.name) // 任一 @Published 变了都重算
     }
@@ -603,7 +613,7 @@ struct UserView: View {
 
 > **追问：** `@StateObject` 和 `@State` + `@Observable` 怎么选？
 >
-> 答：iOS 17+ 用 `@State var viewModel = UserViewModel()` + `@Observable`，语法更简洁；iOS 16 及以下用 `@StateObject`。
+> 答：iOS 17+ 可以使用 `@State private var viewModel = ObservableUserViewModel()` 管理由 View 创建的 `@Observable` 对象；iOS 16 及以下使用 `@StateObject` 管理 `ObservableObject`。
 
 ---
 
@@ -615,7 +625,7 @@ struct UserView: View {
 >
 > 它解决的是**编译期防止数据竞争**。如果一个类型不是 `Sendable`，编译器会阻止你把它传给其他 Actor 或并发任务，从源头拦截共享可变状态。
 >
-> 常见坑：闭包捕获可变状态时要标 `@Sendable`；NSError、UIImage 等 OC 类型默认不是 `Sendable`，需要 `nonisolated(unsafe)` 或包装。
+> 常见坑：`@Sendable` 是对闭包类型的并发契约，它会限制闭包捕获非 Sendable 或可变状态；来自 Objective-C 和旧 SDK 的类型要以当前 SDK 标注为准，必要时通过值类型快照、Actor 隔离或经过审计的 `@unchecked Sendable` 包装处理，不能统一使用 `nonisolated(unsafe)` 绕过。
 
 > **OC 对照记忆：** OC 没有任何编译期类型安全标记来检查跨线程传递。你把 NSMutableArray 丢给后台线程改，编译器一声不吭，运行时才崩。Swift 的 `Sendable` 让编译器在编译期就拦住这种行为——"这个类型不是线程安全的，不能跨域传递"。
 

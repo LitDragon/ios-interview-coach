@@ -1,54 +1,49 @@
-# 苏小龙 - 高级 iOS 开发工程师
+# 苏小龙｜高级 iOS 开发工程师（智能硬件 / 音视频）
 
 ## 基本信息
 
-- 姓名：苏小龙
-- 年龄：31 岁
-- 目标岗位：高级 iOS 开发工程师（智能硬件 / 音视频 / 金融方向）
-- 邮箱：873098673@qq.com
-- 手机：15322059092
-- 所在城市：广州市
-- 当前状态：在职
+- 手机：15322059092｜邮箱：873098673@qq.com｜所在城市：广州
+- 目标岗位：高级 iOS 开发工程师（智能硬件 / 音视频方向）
 
 ## 个人总结
 
-- 近 10 年 iOS 开发经验，覆盖智能硬件音视频、金融、社交语音、B2B 交易等业务场景。
-- 最近两段核心项目分别为当前公司的 V720 智能摄像头 App，以及上一家公司服务的汇丰银行个人金融 iOS 应用。
-- 擅长 Objective-C / Swift 开发、组件化、性能优化、跨层问题定位、真机排障与稳定性交付，具备大型金融项目国际化、无障碍适配与自动化测试经验。
+- 近 10 年 iOS 开发经验，核心方向为智能硬件、实时音视频与复杂存量工程治理，同时具备大型金融项目交付经验。
+- 当前负责 V720 智能摄像头 App 核心链路，覆盖 WebRTC 直播、设备控制、SD 卡回放、Metal 渲染、录制与文件下载。
+- 擅长 Objective-C / Swift 开发、跨层问题定位、性能与稳定性治理；具备国际化、无障碍、自动化测试及 CI/CD 落地经验。
 
 ## 工作经历
 
 ### 高级 iOS 开发工程师 | 广州钱柜物联科技有限公司 | 2024.06 - 至今
 
 - 项目：V720 智能摄像头 iOS App。
-- 负责 V720 智能摄像头 iOS App 核心模块开发与维护，覆盖实时预览、WebRTC 直播、设备控制、SD 卡回放、截图录像、文件下载等核心链路。
-- 梳理 WebRTC 直播与设备控制链路，明确页面生命周期、设备注册、DataChannel 指令、状态回包、播放渲染与资源释放边界，解决 SD 卡状态、夜视模式、回放入口、容量展示等 UI 状态同步问题，推动相关线上 crash 率下降约 40%。
-- 将实时预览从逐帧生成 UIImage 并赋值 UIImageView 的方案，改为基于 Metal 的硬件加速渲染，降低主线程与 CPU 开销，使预览场景 CPU 平均占用从约 45% 降至约 20%，长时间预览发热反馈减少。
+- 负责 V720 智能摄像头 iOS App 核心模块开发与维护，覆盖实时预览、WebRTC 直播、设备控制、SD 卡回放、截图录像及文件下载等核心链路。
+- 重构直播与设备控制状态链路，收敛页面生命周期、设备注册、DataChannel 指令、状态回包、播放渲染与资源释放边界，解决 SD 卡状态、夜视模式、回放入口及容量展示等状态同步问题，推动所负责链路线上 crash 率下降约 40%。
+- 将实时预览由逐帧生成 UIImage 并刷新 UIImageView，改为基于 Metal 的硬件加速渲染；在相同预览场景下，CPU 平均占用由约 45% 降至约 20%，同时减少主线程图像转换与刷新开销。
 - 优化录像分辨率参数传递、MP4 录制输出与文件下载状态隔离，修复部分机型 MP4 输出尺寸异常和下载状态串扰问题，提升录制与下载链路回归稳定性。
-- 协同验证 WebRTC 底层替换方案，围绕 SDP、DataChannel、RTP 收包、H.264 解码与首帧渲染建立排查路径，将兼容边界收敛在 Media 层，减少 App 层改动风险。
+- 参与 WebRTC 底层替换方案验证，围绕 SDP、DataChannel、RTP 收包、H.264 解码与首帧渲染建立分层排查路径，将兼容边界收敛在 Media 层，控制 App 层改动范围。
 
 ### 高级 iOS 开发工程师 | 印孚瑟斯技术有限公司 | 2021.05 - 2024.05
 
 - 项目：汇丰银行个人金融 iOS 应用。
-- 负责汇丰银行个人金融 iOS 应用 Contact Details 等核心模块开发，基于 VIPER 架构实现手机号与邮箱输入验证规则的动态更新，保障金融数据录入准确性。
-- 主导模块国际化与无障碍适配，支持繁体中文、英文等多语言环境，满足香港金融业务对可用性和合规性的要求。
-- 配置 Jenkins 持续集成流水线，接入 XCTest 单元测试与 UITest 界面测试，覆盖 Contact Details 主要输入校验与提交流程，支撑多语言与合规场景下的稳定交付。
+- 负责汇丰银行个人金融 iOS 应用 Contact Details 等核心模块，基于 VIPER 架构实现手机号与邮箱校验规则的动态更新，保障金融数据录入准确性。
+- 主导模块国际化与无障碍适配，支持繁体中文、英文等多语言环境，满足香港金融业务对可用性与合规性的要求。
+- 配置 Jenkins 持续集成流水线，接入 XCTest 与 UITest，覆盖 Contact Details 主要输入校验和提交流程，支撑多语言与合规场景下的稳定交付。
 - 使用 Tealium 进行用户行为埋点与分析，辅助产品团队定位联系人信息修改流程中的关键节点。
 
-### 早期 iOS 开发经历 | 多行业项目交付 | 2016.06 - 2021.04
+### iOS 开发工程师 | 多行业项目交付 | 2016.06 - 2021.04
 
-- 参与 B2B ERP、语音社交、电商、智能设备回收类 iOS App 开发，覆盖业务模块开发、组件化、本地缓存、弱网同步、登录支付、多机型适配与性能优化。
+- 参与 B2B ERP、语音社交、电商及智能设备回收类 iOS App 开发，覆盖业务模块、组件化、本地缓存、弱网同步、登录支付、多机型适配与性能优化。
 - 设计 CocoaPods 私有组件库，抽象基础 UI、网络层、数据库层，减少重复开发并提升协作效率。
 - 独立负责 Whisper 语音社交 iOS 端，从架构搭建、Agora 音视频集成、登录认证、互动动画到 App Store 上架完成全流程交付。
 
 ## 技能栈
 
-- 语言与框架：Objective-C / Swift / Objective-C++ / UIKit / Foundation
+- 核心开发：Objective-C / Swift / Objective-C++ / UIKit / Foundation
+- 音视频与设备：WebRTC / FFmpeg / Metal / AVAudioSession / H.264 / MP4 / 智能硬件设备控制
+- 网络与通信：DataChannel / SocketRocket / UDP/TCP / NSURLSession / AFNetworking / 设备指令与回包解析
 - 架构与工程：VIPER / MVVM / MVC / 组件化与模块化 / CocoaPods / 模块边界治理
-- 音视频与设备：WebRTC / FFmpeg / Metal 渲染 / AVAudioSession / H.264 / MP4 录制 / 智能硬件设备控制
-- 网络与通信：SocketRocket / DataChannel / UDP/TCP 通信 / NSURLSession / AFNetworking / 设备指令回包解析
-- 数据与存储：CoreData / SQLite / UserDefaults / 本地缓存 / AES 本地加密
-- 质量与协作：Instruments / XCTest / UITest / Jenkins CI/CD / Git / Jira / Confluence / 代码审查
+- 数据与存储：Core Data / SQLite / UserDefaults / 本地缓存 / AES 本地加密
+- 质量与交付：Instruments / XCTest / UITest / Jenkins CI/CD / Git / Jira / Confluence / Code Review
 
 ## 教育经历
 
