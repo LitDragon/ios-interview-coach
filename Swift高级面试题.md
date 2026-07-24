@@ -6,16 +6,19 @@
 
 ---
 
-## 题目分级
+## 针对当前基础的学习顺序
 
-| 优先级 | 定位 | 题量 |
+| 优先级 | 题号 | 要求 |
 | --- | --- | --- |
-| P0 | 必背核心题，最容易被问 | 12 题 |
-| P1 | 高频加分题，能体现项目深度 | 9 题 |
+| P0 | 03、04、01、05、07、08、12、15 | 能手写小例子，并用练习项目解释 |
+| P1 | 02、06、14、16、21 | 完成 UIKit + async/await 项目后再练 |
+| P2 | 09、10、13、17、18、19、20 | 面试岗位明确要求时再准备 |
+
+> 当前没有 Swift 生产项目时，应使用“我的理解是”“我在练习项目中采用”的表达，不能把建议写成已经落地的项目经验。
 
 ---
 
-# P0：必背核心题
+# 题目 01–12：基础与核心机制
 
 ## 01：Swift 的值语义和引用语义怎么理解？struct 和 class 怎么选？
 
@@ -25,7 +28,7 @@
 >
 > Swift 推荐优先用 struct，不是因为 struct 一定在栈上，也不是因为 class 一定慢，而是因为值语义更容易推理，少了共享可变状态，也不会产生对象之间的循环引用。
 >
-> 项目里我一般让 Model、配置、状态快照用 struct；需要身份、继承、共享生命周期、和 UIKit/OC 体系交互的对象用 class。核心是看它有没有"身份"和"共享可变状态"。
+> 工程上通常让 Model、配置、状态快照使用 struct；需要身份、继承、共享生命周期、或与 UIKit/OC 体系交互的对象使用 class。核心是看它有没有“身份”和“共享可变状态”。
 
 > **OC 对照记忆：** OC 对象通常是 class 和引用语义，例如多个变量指向同一个 `NSMutableArray` 时会共享修改；但 C struct、标量等仍是值语义。迁移 OC Model 时不能机械改成 struct，仍要根据身份、共享状态和桥接边界判断。
 
@@ -95,7 +98,7 @@ struct MyBuffer<Element> {
 >
 > 一个值如果是 Optional，调用方就必须明确处理有值和没值两种情况，比如用 `if let`、`guard let`、空合并或者可选链。这样失败路径和兜底逻辑会更清楚。
 >
-> 但 Optional 不是绝对安全。强制解包会崩，隐式解包如果生命周期假设错了也会崩。项目里我会让 Optional 多出现在边界层，比如接口返回、配置缺失、弱引用，而不是让核心业务状态到处不确定。
+> 但 Optional 不是绝对安全。强制解包会崩，隐式解包如果生命周期假设错了也会崩。Optional 更适合出现在接口返回、配置缺失、弱引用等边界层；核心业务状态应尽量明确，避免到处传播不确定性。
 
 > **OC 对照记忆：** OC 里给 nil 发消息，静默返回零值（数字 0、BOOL NO、对象 nil），不崩但藏隐患。Swift 把"可能为 nil"变成了类型系统的一部分，编译器逼你处理。用 `!` 强制解包才会崩。本质区别：OC 的 nil 是"静默失败"，Swift 的 Optional 是"强制面对"。
 
@@ -119,7 +122,7 @@ struct MyBuffer<Element> {
 >
 > 面试里重点说清楚：内存问题不是语法问题，而是所有权问题。谁持有任务、任务什么时候结束、回调回来时对象是否还存在，这些才是关键。
 
-> **OC 对照记忆：** 和 OC 的 Block 循环引用原理完全一样。OC 用 `__weak typeof(self) weakSelf = self`，Swift 用 `[weak self]`。OC 的 `__unsafe_unretained` 对应 Swift 的 `unowned`。你做了 10 年 OC 内存管理，这套逻辑直接平移过来就行，只是语法不同。
+> **OC 对照记忆：** 和 OC 的 Block 循环引用分析方法相近。OC 用 `__weak typeof(self) weakSelf = self`，Swift 用 `[weak self]`。Swift 的 `unowned` 会在对象已释放时触发运行时错误；更接近 OC `__unsafe_unretained` 的是 `unowned(unsafe)`，两者都不应作为默认选择。
 
 **weak vs unowned 代码对比：**
 
@@ -160,7 +163,7 @@ class ViewController: UIViewController {
 >
 > 协议扩展可以提供默认实现，这样遵循协议的类型不用每个都重复写一遍。比起传统的基类继承，协议更轻量，也不会引入继承层级过深、父类状态被子类意外修改这些问题。
 >
-> 项目里我会用协议定义模块间的接口边界，方便测试时替换 Mock。但需要共享可变状态、管理生命周期、或者和 UIKit/OC 体系交互时，仍然用 class。不要为了"面向协议"把简单代码过度抽象。
+> 协议适合定义模块间的接口边界，方便测试时替换 Mock；需要共享可变状态、管理生命周期或与 UIKit/OC 体系交互时，仍然常用 class。不要为了“面向协议”把简单代码过度抽象。
 
 > **OC 对照记忆：** OC 也有 protocol，但没有默认实现，每个遵循者都得手写所有方法。Swift 的协议扩展可以给默认实现，等于把 category 的能力安全地融入了协议。OC 里想给 protocol 加默认实现只能靠 category 给 NSObject 扩展，容易命名冲突。Swift 的协议导向本质上是"更安全的 category + 更灵活的多继承"。
 
@@ -184,7 +187,7 @@ class ViewController: UIViewController {
 >
 > 简单原则：能用 `some` 就用 `some`，它性能好、类型安全；需要运行时灵活性时再用 `any`。不要无脑把所有协议参数都标 `any`，也不要为了用 `some` 把本来需要多态的场景强行写死。
 
-> **OC 对照记忆：** OC 里用 `id` 类型，什么都能传，编译器不管你传的是啥。`some` 就是编译器帮你锁定一个具体类型（编译期多态），`any` 就是 OC 的 `id` 那样运行时才确定（运行时多态）。理解这个，`some` 和 `any` 的区别就清楚了。
+> **OC 对照记忆：** `any P` 不是无约束的 OC `id`，它只能装入遵循 `P` 的值，并携带相应 witness table；`some P` 则隐藏一个由实现方固定的具体类型。可以把 `any` 理解为受协议约束的存在类型，而不是“什么都能传”。
 
 **any 和 some 代码对比：**
 
@@ -217,7 +220,7 @@ shapes.forEach { $0.draw() }
 
 > Swift 的错误处理核心是把失败路径显式化。`throwing` 函数声明了"这个操作可能失败"，调用方必须用 `try` 处理，不能假装看不见。
 >
-> 项目里我会分层处理：底层库用 `throwing` 抛具体错误；业务层用 `do-catch` 统一兜底，转换成用户可感知的状态；异步场景用 `Result` 或者 `async throws` 传递。关键是错误要在合适的层级被捕获和转换，不要到处 `try?` 吞掉错误，也不要让底层错误直接弹给用户。
+> 健壮的实现会分层处理：底层抛具体错误；业务层转换成用户可感知的状态；异步场景用 `Result` 或 `async throws` 传递。错误要在合适层级被捕获和转换，不要到处用 `try?` 吞掉错误。
 >
 > 坑点是 `try?` 会把错误信息丢掉，调试时完全不知道为什么失败。核心链路上的错误一定要明确处理，不能图省事全用 `try?`。
 
@@ -239,7 +242,7 @@ shapes.forEach { $0.draw() }
 
 > GCD 是基于队列的底层调度工具，Swift Concurrency 是语言级并发模型，用 `async/await`、`Task`、`TaskGroup`、`Actor` 来表达异步、取消、错误和状态隔离。
 >
-> 新 Swift 业务里，我会优先用 `async/await` 写单次异步流程，因为代码更线性，错误和取消也更好传递。老模块、OC 代码、指定队列、barrier、底层 C API 这些场景，GCD 仍然有价值。
+> 新 Swift 业务通常优先用 `async/await` 表达单次异步流程；老模块、OC 代码、指定队列、barrier 和底层 C API 场景仍可能使用 GCD。
 >
 > 真正要避免的是混用失控。比如在 Task 里塞大量同步阻塞任务，或者在 GCD 回调里直接乱改 MainActor 状态。并发边界要统一，UI 状态要回到主线程语义。
 
@@ -287,13 +290,13 @@ func fetchUser() async throws -> User {
 >
 > Combine 更适合持续变化的数据流，比如搜索防抖、多个状态组合、表单校验、实时消息、视图状态绑定。它处理"随时间变化的事件流"更自然，但调试和生命周期管理成本更高。
 >
-> 项目里我不会强行统一成一种。单次请求用 `async/await`，持续状态流用 Combine 或 SwiftUI 观察机制。关键是边界清楚，不要让 Publisher、Task、回调互相套到看不懂。
+> 单次请求适合 `async/await`，持续状态流可考虑 Combine 或观察机制。关键是边界清楚，不让 Publisher、Task 和回调互相嵌套失控。
 
 > **OC 对照记忆：** OC 没有原生响应式框架，想做事件流得引入 RAC 或 RxSwift。Combine 是 Apple 官方的声明式事件流框架。OC 里你用 RAC 的 `RACSignal` 做信号绑定，Swift 里用 Combine 的 `Publisher` 做同样的事。`async/await` 则替代了 OC 里回调式的网络请求写法。
 
 > **追问：** Combine 和 async/await 能混用吗？
 >
-> 答：能。`Publisher.values` 把 Publisher 转为 AsyncSequence，可在 `for await` 里使用；`Future` 桥接 async 函数到 Combine。关键是边界清楚，别嵌套太深。
+> 答：能。`Publisher.values` 可把 Publisher 作为 AsyncSequence 消费；从 async 函数桥接到 Combine 通常需要在自定义 Publisher、`Future` 构造闭包或适配层中显式创建并管理 Task，不能理解成 `Future` 自动支持 async 函数。
 
 > **追问：** SwiftUI 里还用 Combine 吗？
 >
@@ -353,9 +356,9 @@ func fetchUser() async throws -> User {
 >
 > 其次是动态能力。Swift 默认更静态，如果方法要给 OC 调用、支持 selector、KVO 或 Swizzling，需要明确暴露成 `@objc` 或 `dynamic`，但这也会牺牲一部分静态优化。
 >
-> 大型项目里我会把混编边界集中在 adapter 层，处理好 NSError/Swift Error、集合可变性、线程回调和 Core Foundation 桥接，避免 Swift 业务代码到处被 OC 约束污染。
+> 大型项目通常把混编边界集中在 adapter 层，统一处理 NSError/Swift Error、集合可变性、线程回调和 Core Foundation 桥接，避免 Swift 业务代码到处受 OC 边界约束。
 
-> **OC 对照记忆：** 这题本身就是 OC 和 Swift 的对照。核心三件事：① Bridging Header 让 Swift 调 OC；② 自动生成的 `ModuleName-Swift.h` 让 OC 调 Swift；③ OC 的 `NS_ENUM`、`NSError`、`nullable` 要映射成 Swift 的 `enum`、`throws`、`Optional`。你项目里已经有混编经验，把坑讲清楚就行。
+> **OC 对照记忆：** 核心三件事：① Bridging Header 让 Swift 调 OC；② 自动生成的 `ModuleName-Swift.h` 让 OC 调 Swift；③ OC 的 `NS_ENUM`、`NSError`、nullable 标注会影响 Swift 导入形态。没有实际混编经验时，只讲机制和练习代码，不要包装成生产经验。
 
 > **追问：** Swift 的 `struct` 能暴露给 OC 吗？
 >
@@ -367,7 +370,7 @@ func fetchUser() async throws -> User {
 
 ---
 
-# P1：高频加分题
+# 题目 13–21：进阶与低优先级
 
 ## 13：Swift 的方法派发机制有什么实际意义？
 
@@ -399,7 +402,7 @@ func fetchUser() async throws -> User {
 >
 > 但 Actor 不是"自动无 bug 的锁"。最容易忽略的是重入：Actor 方法里一旦遇到 `await`，当前任务会挂起，其他任务可能进来改状态，恢复后之前读到的状态可能已经过期。
 >
-> 所以我会用 Actor 管状态一致性，但避免在里面做长时间阻塞。关键状态在 `await` 后要重新校验，网络、IO、纯计算和状态提交最好拆清楚。
+> Actor 可以用于管理状态一致性，但不能在里面执行长时间同步阻塞。关键状态在 `await` 后要重新校验，网络、IO、纯计算和状态提交应拆清楚。
 
 > **OC 对照记忆：** OC 常用串行队列、锁或 `@synchronized` 保护共享状态。Actor 把隔离规则加入类型系统，但它允许在 `await` 处重入，因此不能照搬“串行队列中的一个任务会连续执行到底”的假设。
 
@@ -445,7 +448,7 @@ actor Cache {
 
 > **追问：** 怎么解决 Actor 重入问题？
 >
-> 答：关键状态在 `await` 后重新读取；用 `withTaskCancellationHandler` 处理取消；把网络/IO 和状态提交拆成独立操作。
+> 答：关键状态在 `await` 后重新读取并验证版本、请求 ID 或预期值；必要时复用同一个 in-flight Task，或把网络/IO 和最终状态提交拆开。`withTaskCancellationHandler` 解决的是取消清理，不是 Actor 重入本身。
 
 ---
 
@@ -455,7 +458,7 @@ actor Cache {
 
 > MainActor 可以理解为主线程语义的全局 Actor，它把"UI 要在主线程更新"从人为约定变成编译器能检查的隔离规则。
 >
-> 项目里，如果 ViewModel 直接驱动页面状态，我通常会把它标记为 `@MainActor`。网络请求、解析、缓存可以在后台做，最后只把展示结果提交回 MainActor。
+> 如果 ViewModel 直接驱动页面状态，可以将其标记为 `@MainActor`。网络请求、解析和缓存可以在合适的非主线程执行器上处理，最终只把展示状态提交回 MainActor。
 >
 > 需要注意，MainActor 不等于所有代码永远同步跑在主线程上。跨 Actor 调用会有挂起点，顺序、取消和对象生命周期仍然要考虑。
 
@@ -463,7 +466,7 @@ actor Cache {
 
 > **追问：** `@MainActor` 和 `DispatchQueue.main.async` 有什么区别？
 >
-> 答：`@MainActor` 是编译期隔离检查，违规直接编译失败；`DispatchQueue.main.async` 是运行时调度，调错线程只警告不报错。`@MainActor` 更安全。
+> 答：`@MainActor` 提供语言级隔离检查；在 Swift 6 或开启严格并发检查时，违规跨隔离访问通常会成为编译错误。`DispatchQueue.main.async` 只是运行时调度，不表达完整的任务归属、取消和错误传播。
 
 > **追问：** 后台任务怎么更新 UI？
 >
@@ -479,7 +482,7 @@ actor Cache {
 >
 > Swift 的取消是协作式的，不是系统强行杀任务。任务要在合适位置检查取消状态，取消后停止后续工作，避免再更新 UI 或继续占资源。
 >
-> 项目里我会把页面请求、并发加载、批量任务放进清晰的任务作用域里。页面消失时取消任务，子任务失败时明确是整体失败，还是收集部分结果继续降级。
+> 页面请求、并发加载和批量任务应放入清晰的任务作用域；页面退出时取消任务，并明确子任务失败后是整体失败还是保留部分结果继续降级。
 
 > **OC 对照记忆：** GCD block 本身没有统一的取消和错误传播模型，NSOperation 的取消同样需要任务协作。Swift 中由 `async let` 或 TaskGroup 创建的结构化子任务才具有明确的父子生命周期与错误传播；普通 `Task {}` 仍是非结构化任务，需要自行管理句柄。
 

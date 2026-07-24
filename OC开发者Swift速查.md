@@ -57,7 +57,7 @@ let count = name?.count      // 可选链，nil 就返回 nil
 **面试要点：**
 - `String?` 等于 OC 的 `NSString * _Nullable`
 - `String` 等于 OC 的 `NSString * _Nonnull`
-- `!` 强制解包 = 崩溃，和 OC 的 `unrecognized selector` 一样致命
+- `!` 在值为 `nil` 时会触发运行时错误；面试时应说明风险，不要把它机械类比为 OC 的消息转发错误
 - `if let` / `guard let` 是安全解包，解包后变量自动变成非 Optional
 
 **追问：if let 和 guard let 区别？**
@@ -128,13 +128,13 @@ let doubled = [1, 2, 3].map { $0 * 2 }  // $0 是第一个参数
 - 闭包捕获 `self` 和 OC Block 一样会造成循环引用
 
 **追问：Swift 闭包和 OC Block 的内存管理有什么区别？**
-> 原理一样，都是引用计数。Swift 用 `[weak self]`，OC 用 `__weak typeof(self) weakSelf = self`。非逃逸闭包（同步执行）不需要 weak，逃逸闭包（异步保存）需要 weak。
+> 两者都要分析所有权。非逃逸闭包通常不会形成长期持有；逃逸闭包会延长捕获对象的生命周期，但并不等于必须写 `weak`。只有对象持有闭包、闭包又持有对象时才形成循环引用；即使没有循环，如果页面退出后不应继续执行，也可能需要 `[weak self]` 或取消任务。
 
 ---
 
 ## 五、struct vs class
 
-**OC：** 只有 class，全是引用语义。
+**OC：** OC 对象通常是 class 和引用语义；C 标量与 struct 仍然是值语义。
 
 **Swift：**
 ```swift
@@ -162,7 +162,7 @@ print(dog1.name)    // "Max"，跟着变了
 ```
 
 **面试要点：**
-- struct 是值语义，赋值即拷贝（有 COW 优化）
+- struct 是值语义；标准库的 `Array`、`Dictionary`、`String` 等使用 COW，自定义 struct 不会自动获得 COW
 - class 是引用语义，赋值只传引用
 - Swift 推荐优先用 struct，除非需要继承、deinit、引用语义
 
@@ -265,8 +265,9 @@ if (!success) {
 ```swift
 // 声明
 func save() throws -> Bool {
-    // 可能抛出错误
-    throw SaveError.diskFull
+    if diskIsFull {
+        throw SaveError.diskFull
+    }
     return true
 }
 
@@ -293,7 +294,7 @@ let success = try! save()  // 失败直接崩溃
 
 **OC：**
 ```objc
-NSArray<NSString *> *names = @[@"Tom"];  // 轻量泛型，只做类型提示
+NSArray<NSString *> *names = @[@"Tom"];  // 轻量泛型，提供编译期类型检查，运行时会擦除
 ```
 
 **Swift：**
@@ -318,7 +319,7 @@ intStack.push(1)
 ```
 
 **面试要点：**
-- OC 的泛型是轻量的，编译器只提示不检查
+- OC 轻量泛型会参与编译期检查和警告，但运行时仍按原有 OC 容器类型工作
 - Swift 的泛型是真正的类型安全，编译器完整检查
 - 泛型是 `any` 和 `some` 的基础
 
@@ -462,7 +463,7 @@ let p = Point(x: 1, y: 2)  // 自动生成的
 | Swift | OC 类比 | 作用 |
 |-------|---------|------|
 | `open` | - | 可被外部模块继承和重写 |
-| `public` | - | 可被外部模块访问，不可继承 |
+| `public` | - | 可被外部模块访问；外部模块不能继承该类或重写其成员 |
 | `internal` | 不写（默认） | 同一模块内访问 |
 | `fileprivate` | - | 同一文件内访问 |
 | `private` | - | 同一作用域内访问 |
@@ -473,11 +474,67 @@ let p = Point(x: 1, y: 2)  // 自动生成的
 
 ---
 
+## 十六、Codable 和网络模型
+
+```swift
+struct User: Codable {
+    let id: Int
+    let name: String
+}
+
+let (data, response) = try await URLSession.shared.data(from: url)
+guard let http = response as? HTTPURLResponse,
+      200..<300 ~= http.statusCode else {
+    throw URLError(.badServerResponse)
+}
+let user = try JSONDecoder().decode(User.self, from: data)
+```
+
+**面试要点：**
+- `Codable` 是 `Encodable & Decodable`，适合结构稳定的数据边界
+- 解码失败不能用 `try?` 静默吞掉，至少记录错误路径和字段
+- 网络成功不只看“没有 error”，还要检查 HTTP 状态码、响应类型和取消状态
+
+---
+
+## 十七、Task、MainActor 和取消
+
+```swift
+@MainActor
+final class UserViewModel {
+    private var loadTask: Task<Void, Never>?
+
+    func load() {
+        loadTask?.cancel()
+        loadTask = Task { [weak self] in
+            do {
+                let user = try await api.fetchUser()
+                try Task.checkCancellation()
+                self?.name = user.name
+            } catch is CancellationError {
+                // 用户离页或新请求替代旧请求，不展示错误
+            } catch {
+                self?.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    deinit { loadTask?.cancel() }
+}
+```
+
+**面试要点：**
+- `@MainActor` 表达 UI 状态的隔离边界，但仍要处理请求归属、取消和晚到结果
+- Swift 任务取消是协作式的，关键提交前要检查取消状态
+- 页面请求要有明确 owner，不能只因为回调返回就更新当前 UI
+
+---
+
 ## 学习建议
 
-1. **先背 OC 那 16 道题**，建立信心
-2. **看这份速查**，把 OC 知识映射到 Swift
-3. **再背 Swift 高级题**，现在应该能看懂了
-4. **每天花 20 分钟**，先看速查 + 1 道高级题，不要贪多
+1. 先用编辑器手写 Optional、闭包、struct/class、协议、错误处理和 Codable 小练习。
+2. 再完成 UIKit 列表、网络请求、错误状态和取消链路，不要先背 SwiftUI/Combine。
+3. 每道题先说事实，再说练习项目；没有生产经验时不要使用“项目里我一直这样做”。
+4. 每天至少 45 分钟无 AI 首写，完成后再让 AI 审查和解释。
 
 你不是从零开始，你有 10 年 OC 基础，Swift 的很多概念你已经懂了，只是语法不同。
