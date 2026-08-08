@@ -514,6 +514,94 @@
       color: var(--gold);
     }
 
+    .improvement-section {
+      border-top: 1px solid var(--line-soft);
+      background: #15181c;
+    }
+
+    .improvement-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      gap: 18px;
+    }
+
+    .improvement-header h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .improvement-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .improvement-badge {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border: 1px solid #6f5a31;
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .improvement-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--line-soft);
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .improvement-option {
+      min-width: 0;
+      padding: 17px 20px;
+    }
+
+    .improvement-option + .improvement-option {
+      border-left: 1px solid var(--line-soft);
+    }
+
+    .improvement-option span,
+    .improvement-option small {
+      display: block;
+    }
+
+    .improvement-option span {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .improvement-option strong {
+      display: block;
+      color: var(--text);
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .improvement-option small {
+      margin-top: 5px;
+      color: var(--cyan);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .improvement-advice {
+      margin: 0;
+      padding: 13px 20px 15px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
     .formula-strip {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -541,7 +629,7 @@
 
     .note-band {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       margin-top: 18px;
       border-top: 1px solid var(--line-soft);
       border-bottom: 1px solid var(--line-soft);
@@ -645,6 +733,24 @@
         grid-template-columns: 1fr;
       }
 
+      .improvement-header {
+        display: block;
+      }
+
+      .improvement-badge {
+        display: inline-block;
+        margin-top: 10px;
+      }
+
+      .improvement-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .improvement-option + .improvement-option {
+        border-top: 1px solid var(--line-soft);
+        border-left: 0;
+      }
+
       .formula-strip span {
         white-space: normal;
       }
@@ -685,7 +791,7 @@
     <section class="intro" aria-labelledby="page-title">
       <div>
         <h1 id="page-title">急速 / 冷缩计算器</h1>
-        <p>输入面板冷缩、独立技能冷缩和技能急速，即时查看综合冷缩、动作帧数与无缝结果。</p>
+        <p>输入面板冷缩、独立技能冷缩和技能急速，即时查看综合冷缩、满频伤害帧率与改进建议。</p>
       </div>
       <div class="actions">
         <button class="button primary" id="exampleButton" type="button">文章示例</button>
@@ -817,7 +923,7 @@
             <div class="metric">
               <div class="metric-label">
                 <strong>最低面板冷缩</strong>
-                当前急速达到无缝所需
+                当前急速满频建议值（向上取整）
               </div>
               <div class="metric-value" id="minPanelCdr">64.44%</div>
             </div>
@@ -837,6 +943,20 @@
             </div>
             <div class="metric">
               <div class="metric-label">
+                <strong>实际输出间隔</strong>
+                冷却与动画中较慢的一项
+              </div>
+              <div class="metric-value" id="actualOutputInterval">1.500 秒 · 45.00f</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                <strong>满频伤害判定</strong>
+                仅表示当前急速的释放频率
+              </div>
+              <div class="metric-value" id="fullDamageStatus">未达到 · 71.11%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
                 <strong id="gapLabel">距离无缝</strong>
                 面板冷缩百分点差值
               </div>
@@ -844,6 +964,29 @@
             </div>
           </div>
         </div>
+
+        <section class="improvement-section" aria-labelledby="improvementTitle" aria-live="polite">
+          <div class="improvement-header">
+            <div>
+              <h3 id="improvementTitle">满频改进建议</h3>
+              <p>以下两项为独立方案，目标值按两位小数向上取整。</p>
+            </div>
+            <span class="improvement-badge" id="fullDamageTarget">目标 32f · 0.94 次/秒</span>
+          </div>
+          <div class="improvement-grid">
+            <div class="improvement-option">
+              <span>方案 A · 提升面板冷缩</span>
+              <strong id="panelSuggestion">50% → 64.45%</strong>
+              <small id="panelSuggestionDelta">至少提升 14.45 个百分点</small>
+            </div>
+            <div class="improvement-option">
+              <span>方案 B · 提升技能冷缩</span>
+              <strong id="skillSuggestion">0% → 28.58%</strong>
+              <small id="skillSuggestionDelta">至少提升 28.58 个百分点</small>
+            </div>
+          </div>
+          <p class="improvement-advice" id="improvementAdvice">优先选择装备代价更低的一项；无需同时堆到两个建议目标。</p>
+        </section>
 
         <div class="formula-strip">
           <code id="formulaText">1 − (1 − 50%) × (1 − 0%) = 50%</code>
@@ -860,6 +1003,10 @@
       <div class="note">
         <strong>急速采用帧数档位</strong>
         动画帧数 = 向上取整〔初始帧数 ÷ (1 + 急速)〕；实际 CD 不大于动画时间时判定无缝。
+      </div>
+      <div class="note">
+        <strong>满频不等于最终总伤害</strong>
+        本页只判断冷缩是否支持当前急速的最高释放频率；能量不足、其他技能插入和伤害词条仍会影响实战。
       </div>
     </section>
   </main>
@@ -908,8 +1055,16 @@
         minPanelCdr: document.getElementById("minPanelCdr"),
         actualCooldown: document.getElementById("actualCooldown"),
         animationTime: document.getElementById("animationTime"),
+        actualOutputInterval: document.getElementById("actualOutputInterval"),
+        fullDamageStatus: document.getElementById("fullDamageStatus"),
+        fullDamageTarget: document.getElementById("fullDamageTarget"),
         panelGap: document.getElementById("panelGap"),
         gapLabel: document.getElementById("gapLabel"),
+        panelSuggestion: document.getElementById("panelSuggestion"),
+        panelSuggestionDelta: document.getElementById("panelSuggestionDelta"),
+        skillSuggestion: document.getElementById("skillSuggestion"),
+        skillSuggestionDelta: document.getElementById("skillSuggestionDelta"),
+        improvementAdvice: document.getElementById("improvementAdvice"),
         seamlessStatus: document.getElementById("seamlessStatus"),
         statusCaption: document.getElementById("statusCaption"),
         gaugeValue: document.getElementById("gaugeValue"),
@@ -937,6 +1092,29 @@
 
       function inputPercent(value) {
         return `${value.toFixed(2).replace(/\.00$/, "")}%`;
+      }
+
+      function safePercentTarget(value) {
+        return Math.ceil(clamp(value, 0, 0.9999) * 10000 - 0.000001) / 100;
+      }
+
+      function setSuggestion(target, delta, currentValue, requiredValue, isSatisfied, label) {
+        if (isSatisfied || requiredValue <= currentValue / 100) {
+          target.textContent = `${inputPercent(currentValue)} · 已满足`;
+          delta.textContent = "无需继续提升";
+          return;
+        }
+
+        if (requiredValue >= 0.9999) {
+          target.textContent = `单靠${label}无法达到`;
+          delta.textContent = "需要组合提升两类冷缩";
+          return;
+        }
+
+        const targetValue = safePercentTarget(requiredValue);
+        const increase = Math.max(targetValue - currentValue, 0);
+        target.textContent = `${inputPercent(currentValue)} → ${inputPercent(targetValue)}`;
+        delta.textContent = `至少提升 ${increase.toFixed(2)} 个百分点`;
       }
 
       function readState() {
@@ -995,15 +1173,35 @@
         const displayedThreshold = Math.round(seamlessThreshold * 10000) / 10000;
         const otherMultiplier = (1 - skill) * (1 - ultimate);
         const rawMinimumPanel = 1 - (1 - displayedThreshold) / otherMultiplier;
-        const minimumPanel = clamp(rawMinimumPanel, 0, 0.9999);
+        const exactMinimumPanel = 1 - (1 - seamlessThreshold) / otherMultiplier;
+        const rawMinimumSkill = 1 - (1 - displayedThreshold) / ((1 - panel) * (1 - ultimate));
+        const exactMinimumSkill = 1 - (1 - seamlessThreshold) / ((1 - panel) * (1 - ultimate));
+        const recommendedPanel = Math.max(rawMinimumPanel, exactMinimumPanel);
+        const recommendedSkill = Math.max(rawMinimumSkill, exactMinimumSkill);
+        const recommendedPanelValue = safePercentTarget(recommendedPanel);
+        const minimumPanel = recommendedPanelValue / 100;
         const isSeamless = actualCooldownFrames <= animationFrames + 0.000001;
         const gap = panel - minimumPanel;
         const progress = clamp(totalCdr / Math.max(displayedThreshold, 0.0001), 0, 1);
+        const outputIntervalFrames = Math.max(actualCooldownFrames, animationFrames);
+        const outputIntervalSeconds = outputIntervalFrames / 30;
+        const outputFrameTier = Math.ceil(outputIntervalFrames - 0.000001);
+        const maximumFrequency = 30 / animationFrames;
+        const currentFrequency = 30 / outputIntervalFrames;
+        const frequencyAchievement = clamp(currentFrequency / maximumFrequency, 0, 1);
 
         output.totalCdr.textContent = percent(totalCdr);
-        output.minPanelCdr.textContent = rawMinimumPanel <= 0 ? "0%（已满足）" : percent(minimumPanel);
+        output.minPanelCdr.textContent = recommendedPanel <= 0
+          ? "0%（已满足）"
+          : inputPercent(recommendedPanelValue);
         output.actualCooldown.textContent = `${actualCooldownSeconds.toFixed(3)} 秒 · ${actualCooldownFrames.toFixed(2)}f`;
         output.animationTime.textContent = `${animationSeconds.toFixed(3)} 秒 · ${animationFrames}f`;
+        output.actualOutputInterval.textContent = `${outputIntervalSeconds.toFixed(3)} 秒 · ${outputIntervalFrames.toFixed(2)}f（约 ${outputFrameTier}f 档）`;
+        output.fullDamageStatus.textContent = isSeamless
+          ? "已达到 · 100%"
+          : `未达到 · ${(frequencyAchievement * 100).toFixed(2)}%`;
+        output.fullDamageStatus.style.color = isSeamless ? "var(--green)" : "var(--coral)";
+        output.fullDamageTarget.textContent = `目标 ${animationFrames}f · ${maximumFrequency.toFixed(2)} 次/秒`;
         output.panelGap.textContent = isSeamless
           ? `富余 ${(Math.max(gap, 0) * 100).toFixed(2)}%`
           : `还差 ${(Math.max(-gap, 0) * 100).toFixed(2)}%`;
@@ -1015,7 +1213,27 @@
         output.formulaText.textContent = state.ultEnabled
           ? `1 − (1 − ${inputPercent(state.panelCdr)}) × (1 − ${inputPercent(state.skillCdr)}) × (1 − ${inputPercent(state.ultCdr)}) = ${percent(totalCdr)}`
           : `1 − (1 − ${inputPercent(state.panelCdr)}) × (1 − ${inputPercent(state.skillCdr)}) = ${percent(totalCdr)}`;
-        output.thresholdText.textContent = `无缝线 ${percent(displayedThreshold)}`;
+        output.thresholdText.textContent = `无缝线 ${(seamlessThreshold * 100).toFixed(4)}%`;
+
+        setSuggestion(
+          output.panelSuggestion,
+          output.panelSuggestionDelta,
+          state.panelCdr,
+          recommendedPanel,
+          isSeamless,
+          "面板冷缩"
+        );
+        setSuggestion(
+          output.skillSuggestion,
+          output.skillSuggestionDelta,
+          state.skillCdr,
+          recommendedSkill,
+          isSeamless,
+          "技能冷缩"
+        );
+        output.improvementAdvice.textContent = isSeamless
+          ? "当前冷缩已支持满频释放，无需继续堆冷缩；可将属性投入其他输出或续航项。"
+          : "优先选择装备代价更低的一项；两项为独立方案，无需同时堆到两个建议目标。";
 
         const statusColor = isSeamless ? "var(--green)" : "var(--coral)";
         output.seamlessStatus.style.color = statusColor;
