@@ -1,0 +1,1050 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101216">
+  <title>急速 / 冷缩计算器</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101216;
+      --surface: #181b20;
+      --surface-strong: #20242a;
+      --line: #343a43;
+      --line-soft: #292e35;
+      --text: #f4f6f8;
+      --muted: #a8b0ba;
+      --gold: #e9bd65;
+      --cyan: #69d7d0;
+      --green: #70d89b;
+      --coral: #f08772;
+      --focus: #8fe6df;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    summary,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    summary:focus-visible,
+    a:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--focus) 48%, transparent);
+      outline-offset: 2px;
+    }
+
+    .topbar {
+      border-bottom: 1px solid var(--line-soft);
+      background: #13161a;
+    }
+
+    .topbar-inner,
+    main,
+    footer {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 68px;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      place-items: center;
+      border: 1px solid #695631;
+      border-radius: 50%;
+      color: var(--gold);
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .source-link {
+      color: var(--cyan);
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .source-link:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      padding: 42px 0 30px;
+    }
+
+    .intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 24px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: 36px;
+      line-height: 1.18;
+    }
+
+    .intro p {
+      max-width: 700px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .actions {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 8px;
+    }
+
+    .button {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface-strong);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .button:hover {
+      border-color: #56606d;
+      background: #282d34;
+    }
+
+    .button.primary {
+      border-color: #8b6b31;
+      background: var(--gold);
+      color: #201b12;
+    }
+
+    .button.primary:hover {
+      background: #f2ca7a;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.88fr) minmax(420px, 1.12fr);
+      align-items: stretch;
+      gap: 18px;
+    }
+
+    .panel {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 54px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line-soft);
+      gap: 12px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    .panel-header span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .fields {
+      display: grid;
+      gap: 18px;
+      padding: 22px 20px 24px;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 146px;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .field-label {
+      min-width: 0;
+    }
+
+    .field-label label,
+    .field-label .label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field-label small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      height: 44px;
+      padding: 0 42px 0 12px;
+      border: 1px solid #454c56;
+      border-radius: 6px;
+      background: #111419;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    .input-wrap input:hover {
+      border-color: #5d6672;
+    }
+
+    .input-wrap input:focus {
+      border-color: var(--focus);
+    }
+
+    .unit {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+
+    details {
+      border-top: 1px solid var(--line-soft);
+    }
+
+    summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 52px;
+      padding: 0 20px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 650;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      color: var(--gold);
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    details[open] summary::after {
+      content: "−";
+    }
+
+    .advanced-fields {
+      display: grid;
+      gap: 18px;
+      padding: 4px 20px 22px;
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex: 0 0 44px;
+    }
+
+    .switch input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .switch span {
+      position: absolute;
+      inset: 0;
+      border: 1px solid #505863;
+      border-radius: 999px;
+      background: #111419;
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .switch span::after {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #aeb6bf;
+      content: "";
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .switch input:checked + span {
+      border-color: #78602f;
+      background: #5d4822;
+    }
+
+    .switch input:checked + span::after {
+      background: var(--gold);
+      transform: translateX(20px);
+    }
+
+    .switch input:focus-visible + span {
+      outline: 3px solid color-mix(in srgb, var(--focus) 48%, transparent);
+      outline-offset: 2px;
+    }
+
+    .ult-field[hidden] {
+      display: none;
+    }
+
+    .result-body {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      min-height: 390px;
+    }
+
+    .gauge-area {
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      padding: 28px 22px;
+      border-right: 1px solid var(--line-soft);
+      background: #15181c;
+      text-align: center;
+    }
+
+    .gauge {
+      position: relative;
+      display: grid;
+      width: 188px;
+      height: 188px;
+      place-items: center;
+    }
+
+    .gauge svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .gauge-track,
+    .gauge-value {
+      fill: none;
+      stroke-width: 10;
+    }
+
+    .gauge-track {
+      stroke: #292e35;
+    }
+
+    .gauge-value {
+      stroke: var(--green);
+      stroke-linecap: round;
+      stroke-dasharray: 314.159;
+      stroke-dashoffset: 314.159;
+      transition: stroke 180ms ease, stroke-dashoffset 240ms ease;
+    }
+
+    .gauge-center {
+      position: relative;
+    }
+
+    .status-label {
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-value {
+      color: var(--green);
+      font-size: 31px;
+      font-weight: 800;
+      line-height: 1.05;
+    }
+
+    .gauge-caption {
+      margin-top: 15px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .result-list {
+      display: grid;
+      align-content: center;
+      padding: 18px 22px;
+    }
+
+    .metric {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+      align-items: center;
+      min-height: 66px;
+      border-bottom: 1px solid var(--line-soft);
+      gap: 18px;
+    }
+
+    .metric:last-child {
+      border-bottom: 0;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .metric-label strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .metric-value {
+      max-width: 220px;
+      color: var(--text);
+      font-size: 20px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 780;
+      line-height: 1.2;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-value.accent {
+      color: var(--gold);
+    }
+
+    .formula-strip {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      min-height: 64px;
+      padding: 12px 20px;
+      border-top: 1px solid var(--line-soft);
+      background: #14171b;
+      gap: 18px;
+    }
+
+    .formula-strip code {
+      color: #c7cdd4;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
+    .formula-strip span {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .note-band {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 18px;
+      border-top: 1px solid var(--line-soft);
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .note {
+      padding: 18px 20px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .note + .note {
+      border-left: 1px solid var(--line-soft);
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    footer {
+      padding: 0 0 32px;
+      color: #7f8893;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .result-body {
+        grid-template-columns: 220px minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar-inner,
+      main,
+      footer {
+        width: min(100% - 24px, 1120px);
+      }
+
+      .topbar-inner {
+        min-height: 62px;
+      }
+
+      .brand span,
+      .source-link span {
+        display: none;
+      }
+
+      main {
+        padding-top: 26px;
+      }
+
+      .intro {
+        display: block;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
+
+      .actions {
+        margin-top: 18px;
+      }
+
+      .actions .button {
+        flex: 1 1 0;
+      }
+
+      .field {
+        grid-template-columns: minmax(0, 1fr) 126px;
+        gap: 10px;
+      }
+
+      .result-body {
+        grid-template-columns: 1fr;
+      }
+
+      .gauge-area {
+        border-right: 0;
+        border-bottom: 1px solid var(--line-soft);
+      }
+
+      .metric {
+        grid-template-columns: minmax(0, 1fr) minmax(100px, auto);
+      }
+
+      .metric-value {
+        font-size: 18px;
+      }
+
+      .formula-strip,
+      .note-band {
+        grid-template-columns: 1fr;
+      }
+
+      .formula-strip span {
+        white-space: normal;
+      }
+
+      .note + .note {
+        border-top: 1px solid var(--line-soft);
+        border-left: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">疾</div>
+        <div>
+          <strong>迷雾大陆 · 急速工具</strong>
+          <span>冷缩叠加与无缝判定</span>
+        </div>
+      </div>
+      <a class="source-link" href="https://mp.weixin.qq.com/s/vl50UTDe0n6C2xRUbK9ugQ" target="_blank" rel="noreferrer">
+        计算依据 <span>· 急速终极详解</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">急速 / 冷缩计算器</h1>
+        <p>输入面板冷缩、独立技能冷缩和技能急速，即时查看综合冷缩、动作帧数与无缝结果。</p>
+      </div>
+      <div class="actions">
+        <button class="button primary" id="exampleButton" type="button">文章示例</button>
+        <button class="button" id="resetButton" type="button" title="恢复默认值">↺ 重置</button>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="急速计算工作区">
+      <div class="panel input-panel">
+        <div class="panel-header">
+          <h2>当前属性</h2>
+          <span>输入后实时计算</span>
+        </div>
+
+        <div class="fields">
+          <div class="field">
+            <div class="field-label">
+              <label for="panelCdr">面板冷缩</label>
+              <small>角色属性面板显示的冷却缩减</small>
+            </div>
+            <div class="input-wrap">
+              <input id="panelCdr" type="number" min="0" max="99.99" step="0.01" inputmode="decimal" value="50">
+              <span class="unit">%</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">
+              <label for="skillCdr">独立技能冷缩</label>
+              <small>如勤练、遗物等未计入面板的冷缩</small>
+            </div>
+            <div class="input-wrap">
+              <input id="skillCdr" type="number" min="0" max="99.99" step="0.01" inputmode="decimal" value="0">
+              <span class="unit">%</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">
+              <label for="haste">技能急速</label>
+              <small>用于缩短非普攻技能的攻击动画</small>
+            </div>
+            <div class="input-wrap">
+              <input id="haste" type="number" min="0" max="10000" step="1" inputmode="decimal" value="0">
+              <span class="unit">%</span>
+            </div>
+          </div>
+        </div>
+
+        <details>
+          <summary>技能参数与大招冷缩</summary>
+          <div class="advanced-fields">
+            <div class="field">
+              <div class="field-label">
+                <label for="baseCooldown">技能基础冷却</label>
+                <small>技能说明中的原始 CD</small>
+              </div>
+              <div class="input-wrap">
+                <input id="baseCooldown" type="number" min="0.01" max="999" step="0.01" inputmode="decimal" value="3">
+                <span class="unit">秒</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                <label for="baseFrames">初始动画帧数</label>
+                <small>文章表格中急速为 0% 时的帧数</small>
+              </div>
+              <div class="input-wrap">
+                <input id="baseFrames" type="number" min="1" max="999" step="1" inputmode="numeric" value="32">
+                <span class="unit">f</span>
+              </div>
+            </div>
+
+            <div class="switch-row">
+              <div class="field-label">
+                <span class="label">计算大招冷缩</span>
+                <small>开启后按独立乘区参与叠加</small>
+              </div>
+              <label class="switch" title="计算大招冷缩">
+                <input id="ultEnabled" type="checkbox">
+                <span aria-hidden="true"></span>
+              </label>
+            </div>
+
+            <div class="field ult-field" id="ultField" hidden>
+              <div class="field-label">
+                <label for="ultCdr">大招冷缩</label>
+                <small>只对当前技能生效的大招冷缩</small>
+              </div>
+              <div class="input-wrap">
+                <input id="ultCdr" type="number" min="0" max="99.99" step="0.01" inputmode="decimal" value="25">
+                <span class="unit">%</span>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="panel result-panel">
+        <div class="panel-header">
+          <h2>计算结果</h2>
+          <span id="resultHint">以 30 帧 = 1 秒计算</span>
+        </div>
+
+        <div class="result-body" aria-live="polite">
+          <div class="gauge-area">
+            <div class="gauge" aria-hidden="true">
+              <svg viewBox="0 0 120 120">
+                <circle class="gauge-track" cx="60" cy="60" r="50"></circle>
+                <circle class="gauge-value" id="gaugeValue" cx="60" cy="60" r="50"></circle>
+              </svg>
+              <div class="gauge-center">
+                <div class="status-label">循环状态</div>
+                <div class="status-value" id="seamlessStatus">未无缝</div>
+              </div>
+            </div>
+            <div class="gauge-caption" id="statusCaption">实际冷却长于技能动画</div>
+          </div>
+
+          <div class="result-list">
+            <div class="metric">
+              <div class="metric-label">
+                <strong>综合有效冷缩</strong>
+                面板与独立冷缩乘法叠加
+              </div>
+              <div class="metric-value accent" id="totalCdr">50.00%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                <strong>最低面板冷缩</strong>
+                当前急速达到无缝所需
+              </div>
+              <div class="metric-value" id="minPanelCdr">64.44%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                <strong>技能实际冷却</strong>
+                综合冷缩后的 CD
+              </div>
+              <div class="metric-value" id="actualCooldown">1.500 秒 · 45.00f</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                <strong>急速后动画</strong>
+                帧数向上取整
+              </div>
+              <div class="metric-value" id="animationTime">1.067 秒 · 32f</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                <strong id="gapLabel">距离无缝</strong>
+                面板冷缩百分点差值
+              </div>
+              <div class="metric-value" id="panelGap">还差 14.44%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula-strip">
+          <code id="formulaText">1 − (1 − 50%) × (1 − 0%) = 50%</code>
+          <span id="thresholdText">无缝线 64.44%</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="note-band" aria-label="计算口径">
+      <div class="note">
+        <strong>冷缩采用独立乘区</strong>
+        综合冷缩 = 1 − (1 − 面板冷缩) × (1 − 技能冷缩) × (1 − 大招冷缩)。
+      </div>
+      <div class="note">
+        <strong>急速采用帧数档位</strong>
+        动画帧数 = 向上取整〔初始帧数 ÷ (1 + 急速)〕；实际 CD 不大于动画时间时判定无缝。
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    计算口径整理自“迷雾云端攻略”原文。技能、装备或赛季规则变化时，请以游戏内数值与最新攻略为准。
+  </footer>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "mist-haste-calculator-v1";
+      const CIRCUMFERENCE = 2 * Math.PI * 50;
+      const defaults = {
+        panelCdr: 50,
+        skillCdr: 0,
+        haste: 0,
+        baseCooldown: 3,
+        baseFrames: 32,
+        ultEnabled: false,
+        ultCdr: 25
+      };
+      const articleExample = {
+        panelCdr: 50,
+        skillCdr: 68.56,
+        haste: 204,
+        baseCooldown: 3,
+        baseFrames: 32,
+        ultEnabled: true,
+        ultCdr: 25
+      };
+
+      const fields = {
+        panelCdr: document.getElementById("panelCdr"),
+        skillCdr: document.getElementById("skillCdr"),
+        haste: document.getElementById("haste"),
+        baseCooldown: document.getElementById("baseCooldown"),
+        baseFrames: document.getElementById("baseFrames"),
+        ultEnabled: document.getElementById("ultEnabled"),
+        ultCdr: document.getElementById("ultCdr")
+      };
+
+      const output = {
+        totalCdr: document.getElementById("totalCdr"),
+        minPanelCdr: document.getElementById("minPanelCdr"),
+        actualCooldown: document.getElementById("actualCooldown"),
+        animationTime: document.getElementById("animationTime"),
+        panelGap: document.getElementById("panelGap"),
+        gapLabel: document.getElementById("gapLabel"),
+        seamlessStatus: document.getElementById("seamlessStatus"),
+        statusCaption: document.getElementById("statusCaption"),
+        gaugeValue: document.getElementById("gaugeValue"),
+        formulaText: document.getElementById("formulaText"),
+        thresholdText: document.getElementById("thresholdText")
+      };
+
+      const ultField = document.getElementById("ultField");
+
+      function clamp(value, minimum, maximum) {
+        return Math.min(Math.max(value, minimum), maximum);
+      }
+
+      function numberValue(input, fallback, minimum, maximum) {
+        const value = Number(input.value);
+        if (!Number.isFinite(value)) {
+          return fallback;
+        }
+        return clamp(value, minimum, maximum);
+      }
+
+      function percent(value) {
+        return `${(value * 100).toFixed(2)}%`;
+      }
+
+      function inputPercent(value) {
+        return `${value.toFixed(2).replace(/\.00$/, "")}%`;
+      }
+
+      function readState() {
+        return {
+          panelCdr: numberValue(fields.panelCdr, defaults.panelCdr, 0, 99.99),
+          skillCdr: numberValue(fields.skillCdr, defaults.skillCdr, 0, 99.99),
+          haste: numberValue(fields.haste, defaults.haste, 0, 10000),
+          baseCooldown: numberValue(fields.baseCooldown, defaults.baseCooldown, 0.01, 999),
+          baseFrames: numberValue(fields.baseFrames, defaults.baseFrames, 1, 999),
+          ultEnabled: fields.ultEnabled.checked,
+          ultCdr: numberValue(fields.ultCdr, defaults.ultCdr, 0, 99.99)
+        };
+      }
+
+      function writeState(state) {
+        Object.entries(fields).forEach(([key, field]) => {
+          if (field.type === "checkbox") {
+            field.checked = Boolean(state[key]);
+          } else {
+            field.value = state[key];
+          }
+        });
+        ultField.hidden = !fields.ultEnabled.checked;
+      }
+
+      function saveState(state) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (_) {
+          // Local persistence is optional when the file is opened with strict browser settings.
+        }
+      }
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          return saved && typeof saved === "object" ? { ...defaults, ...saved } : defaults;
+        } catch (_) {
+          return defaults;
+        }
+      }
+
+      function calculate() {
+        const state = readState();
+        const panel = state.panelCdr / 100;
+        const skill = state.skillCdr / 100;
+        const ultimate = state.ultEnabled ? state.ultCdr / 100 : 0;
+        const haste = state.haste / 100;
+        const totalCdr = 1 - (1 - panel) * (1 - skill) * (1 - ultimate);
+        const baseCooldownFrames = state.baseCooldown * 30;
+        const animationFrames = Math.ceil(state.baseFrames / (1 + haste));
+        const animationSeconds = animationFrames / 30;
+        const actualCooldownFrames = baseCooldownFrames * (1 - totalCdr);
+        const actualCooldownSeconds = actualCooldownFrames / 30;
+        const seamlessThreshold = clamp(1 - animationFrames / baseCooldownFrames, 0, 0.9999);
+        const displayedThreshold = Math.round(seamlessThreshold * 10000) / 10000;
+        const otherMultiplier = (1 - skill) * (1 - ultimate);
+        const rawMinimumPanel = 1 - (1 - displayedThreshold) / otherMultiplier;
+        const minimumPanel = clamp(rawMinimumPanel, 0, 0.9999);
+        const isSeamless = actualCooldownFrames <= animationFrames + 0.000001;
+        const gap = panel - minimumPanel;
+        const progress = clamp(totalCdr / Math.max(displayedThreshold, 0.0001), 0, 1);
+
+        output.totalCdr.textContent = percent(totalCdr);
+        output.minPanelCdr.textContent = rawMinimumPanel <= 0 ? "0%（已满足）" : percent(minimumPanel);
+        output.actualCooldown.textContent = `${actualCooldownSeconds.toFixed(3)} 秒 · ${actualCooldownFrames.toFixed(2)}f`;
+        output.animationTime.textContent = `${animationSeconds.toFixed(3)} 秒 · ${animationFrames}f`;
+        output.panelGap.textContent = isSeamless
+          ? `富余 ${(Math.max(gap, 0) * 100).toFixed(2)}%`
+          : `还差 ${(Math.max(-gap, 0) * 100).toFixed(2)}%`;
+        output.gapLabel.textContent = isSeamless ? "无缝余量" : "距离无缝";
+        output.seamlessStatus.textContent = isSeamless ? "已无缝" : "未无缝";
+        output.statusCaption.textContent = isSeamless
+          ? `冷却 ${actualCooldownFrames.toFixed(2)}f ≤ 动画 ${animationFrames}f`
+          : `冷却 ${actualCooldownFrames.toFixed(2)}f > 动画 ${animationFrames}f`;
+        output.formulaText.textContent = state.ultEnabled
+          ? `1 − (1 − ${inputPercent(state.panelCdr)}) × (1 − ${inputPercent(state.skillCdr)}) × (1 − ${inputPercent(state.ultCdr)}) = ${percent(totalCdr)}`
+          : `1 − (1 − ${inputPercent(state.panelCdr)}) × (1 − ${inputPercent(state.skillCdr)}) = ${percent(totalCdr)}`;
+        output.thresholdText.textContent = `无缝线 ${percent(displayedThreshold)}`;
+
+        const statusColor = isSeamless ? "var(--green)" : "var(--coral)";
+        output.seamlessStatus.style.color = statusColor;
+        output.gaugeValue.style.stroke = statusColor;
+        output.gaugeValue.style.strokeDashoffset = String(CIRCUMFERENCE * (1 - progress));
+
+        ultField.hidden = !state.ultEnabled;
+        saveState(state);
+      }
+
+      Object.values(fields).forEach((field) => {
+        field.addEventListener("input", calculate);
+        field.addEventListener("change", calculate);
+      });
+
+      document.getElementById("exampleButton").addEventListener("click", () => {
+        writeState(articleExample);
+        document.querySelector("details").open = true;
+        calculate();
+      });
+
+      document.getElementById("resetButton").addEventListener("click", () => {
+        writeState(defaults);
+        calculate();
+      });
+
+      writeState(loadState());
+      calculate();
+    })();
+  </script>
+</body>
+</html>
