@@ -778,7 +778,7 @@
         <div class="brand-mark" aria-hidden="true">疾</div>
         <div>
           <strong>迷雾大陆 · 急速工具</strong>
-          <span>冷缩叠加与无缝判定</span>
+          <span>恶鬼帧数表与无缝判定</span>
         </div>
       </div>
       <a class="source-link" href="https://mp.weixin.qq.com/s/vl50UTDe0n6C2xRUbK9ugQ" target="_blank" rel="noreferrer">
@@ -790,11 +790,12 @@
   <main>
     <section class="intro" aria-labelledby="page-title">
       <div>
-        <h1 id="page-title">急速 / 冷缩计算器</h1>
-        <p>急速本身不固定对应某个帧数，需结合技能初始动画帧数计算。例如地狱喷泉初始 32f，204% 急速对应 11f。</p>
+        <h1 id="page-title">恶鬼急速 / 冷缩计算器</h1>
+        <p>按 S14 恶鬼急速表离散查档：172% 对应 13f、无缝 CDR 92.78%；173% 对应 12f、无缝 CDR 93.33%。</p>
       </div>
       <div class="actions">
-        <button class="button primary" id="exampleButton" type="button">地狱喷泉示例</button>
+        <button class="button primary" id="calculateButton" type="button">计算</button>
+        <button class="button" id="exampleButton" type="button">173% 示例</button>
         <button class="button" id="resetButton" type="button" title="恢复默认值">↺ 重置</button>
       </div>
     </section>
@@ -803,7 +804,7 @@
       <div class="panel input-panel">
         <div class="panel-header">
           <h2>当前属性</h2>
-          <span>输入后实时计算</span>
+          <span>修改后点击计算</span>
         </div>
 
         <div class="fields">
@@ -832,40 +833,18 @@
           <div class="field">
             <div class="field-label">
               <label for="haste">技能急速</label>
-              <small>需与技能初始动画帧数一起计算</small>
+              <small>按 S14 恶鬼表查档，支持 0%–250%</small>
             </div>
             <div class="input-wrap">
-              <input id="haste" type="number" min="0" max="10000" step="1" inputmode="decimal" value="0">
+              <input id="haste" type="number" min="0" max="250" step="1" inputmode="numeric" value="173">
               <span class="unit">%</span>
-            </div>
-          </div>
-
-          <div class="field">
-            <div class="field-label">
-              <label for="baseFrames">初始动画帧数</label>
-              <small>地狱喷泉为 32f；204% 急速时对应 11f</small>
-            </div>
-            <div class="input-wrap">
-              <input id="baseFrames" type="number" min="1" max="999" step="1" inputmode="numeric" value="32">
-              <span class="unit">f</span>
             </div>
           </div>
         </div>
 
         <details>
-          <summary>技能冷却与大招冷缩</summary>
+          <summary>大招冷缩</summary>
           <div class="advanced-fields">
-            <div class="field">
-              <div class="field-label">
-                <label for="baseCooldown">技能基础冷却</label>
-                <small>技能说明中的原始 CD</small>
-              </div>
-              <div class="input-wrap">
-                <input id="baseCooldown" type="number" min="0.01" max="999" step="0.01" inputmode="decimal" value="3">
-                <span class="unit">秒</span>
-              </div>
-            </div>
-
             <div class="switch-row">
               <div class="field-label">
                 <span class="label">计算大招冷缩</span>
@@ -894,7 +873,7 @@
       <div class="panel result-panel">
         <div class="panel-header">
           <h2>计算结果</h2>
-          <span id="resultHint">以 30 帧 = 1 秒计算</span>
+          <span id="resultHint">恶鬼表 · 6秒 CD · 30帧/秒</span>
         </div>
 
         <div class="result-body" aria-live="polite">
@@ -937,7 +916,7 @@
             <div class="metric">
               <div class="metric-label">
                 <strong>急速后动画</strong>
-                <span id="animationFormula">32f ÷ (1 + 0%) = 32.00f，向上取整</span>
+                <span id="animationFormula">恶鬼攻略表：173% 对应 12f</span>
               </div>
               <div class="metric-value" id="animationTime">1.067 秒 · 32f</div>
             </div>
@@ -1002,7 +981,7 @@
       </div>
       <div class="note">
         <strong>急速采用帧数档位</strong>
-        急速百分比不能单独决定帧数。动画帧数 = 向上取整〔初始帧数 ÷ (1 + 急速)〕；实际 CD 不大于动画时间时判定无缝。
+        恶鬼帧数直接采用 S14 攻略表，不再使用连续除法估算；172% 与 173% 位于不同档位。
       </div>
       <div class="note">
         <strong>满频不等于最终总伤害</strong>
@@ -1012,31 +991,54 @@
   </main>
 
   <footer>
-    计算口径整理自“迷雾云端攻略”原文。技能、装备或赛季规则变化时，请以游戏内数值与最新攻略为准。
+    计算口径整理自“迷雾云端攻略”S14 恶鬼急速表。技能、装备或赛季规则变化时，请以游戏内数值与最新攻略为准。
   </footer>
 
   <script>
     (() => {
       "use strict";
 
-      const STORAGE_KEY = "mist-haste-calculator-v1";
+      const STORAGE_KEY = "mist-evil-ghost-calculator-v1";
       const CIRCUMFERENCE = 2 * Math.PI * 50;
+      const FPS = 30;
+      const BASE_COOLDOWN_SECONDS = 6;
+      const FRAME_TIERS = [
+        { min: 0, max: 0, frames: 32 },
+        { min: 1, max: 3, frames: 31 },
+        { min: 4, max: 7, frames: 30 },
+        { min: 8, max: 11, frames: 29 },
+        { min: 12, max: 15, frames: 28 },
+        { min: 16, max: 19, frames: 27 },
+        { min: 20, max: 24, frames: 26 },
+        { min: 25, max: 30, frames: 25 },
+        { min: 31, max: 36, frames: 24 },
+        { min: 37, max: 42, frames: 23 },
+        { min: 43, max: 49, frames: 22 },
+        { min: 50, max: 54, frames: 21 },
+        { min: 55, max: 66, frames: 20 },
+        { min: 67, max: 76, frames: 19 },
+        { min: 77, max: 87, frames: 18 },
+        { min: 88, max: 100, frames: 17 },
+        { min: 101, max: 114, frames: 16 },
+        { min: 115, max: 129, frames: 15 },
+        { min: 130, max: 148, frames: 14 },
+        { min: 149, max: 172, frames: 13 },
+        { min: 173, max: 200, frames: 12 },
+        { min: 201, max: 233, frames: 11 },
+        { min: 234, max: 250, frames: 10 }
+      ];
       const defaults = {
         panelCdr: 50,
         skillCdr: 0,
-        haste: 0,
-        baseCooldown: 3,
-        baseFrames: 32,
+        haste: 173,
         ultEnabled: false,
         ultCdr: 25
       };
       const articleExample = {
-        panelCdr: 50,
-        skillCdr: 68.56,
-        haste: 204,
-        baseCooldown: 3,
-        baseFrames: 32,
-        ultEnabled: true,
+        panelCdr: 93.33,
+        skillCdr: 0,
+        haste: 173,
+        ultEnabled: false,
         ultCdr: 25
       };
 
@@ -1044,8 +1046,6 @@
         panelCdr: document.getElementById("panelCdr"),
         skillCdr: document.getElementById("skillCdr"),
         haste: document.getElementById("haste"),
-        baseCooldown: document.getElementById("baseCooldown"),
-        baseFrames: document.getElementById("baseFrames"),
         ultEnabled: document.getElementById("ultEnabled"),
         ultCdr: document.getElementById("ultCdr")
       };
@@ -1070,7 +1070,8 @@
         statusCaption: document.getElementById("statusCaption"),
         gaugeValue: document.getElementById("gaugeValue"),
         formulaText: document.getElementById("formulaText"),
-        thresholdText: document.getElementById("thresholdText")
+        thresholdText: document.getElementById("thresholdText"),
+        resultHint: document.getElementById("resultHint")
       };
 
       const ultField = document.getElementById("ultField");
@@ -1099,6 +1100,14 @@
         return Math.ceil(clamp(value, 0, 0.9999) * 10000 - 0.000001) / 100;
       }
 
+      function frameTierForHaste(haste) {
+        const tableHaste = Math.floor(clamp(haste, 0, 250));
+        return {
+          tableHaste,
+          tier: FRAME_TIERS.find(({ min, max }) => tableHaste >= min && tableHaste <= max)
+        };
+      }
+
       function setSuggestion(target, delta, currentValue, requiredValue, isSatisfied, label) {
         if (isSatisfied || requiredValue <= currentValue / 100) {
           target.textContent = `${inputPercent(currentValue)} · 已满足`;
@@ -1122,9 +1131,7 @@
         return {
           panelCdr: numberValue(fields.panelCdr, defaults.panelCdr, 0, 99.99),
           skillCdr: numberValue(fields.skillCdr, defaults.skillCdr, 0, 99.99),
-          haste: numberValue(fields.haste, defaults.haste, 0, 10000),
-          baseCooldown: numberValue(fields.baseCooldown, defaults.baseCooldown, 0.01, 999),
-          baseFrames: numberValue(fields.baseFrames, defaults.baseFrames, 1, 999),
+          haste: numberValue(fields.haste, defaults.haste, 0, 250),
           ultEnabled: fields.ultEnabled.checked,
           ultCdr: numberValue(fields.ultCdr, defaults.ultCdr, 0, 99.99)
         };
@@ -1163,33 +1170,28 @@
         const panel = state.panelCdr / 100;
         const skill = state.skillCdr / 100;
         const ultimate = state.ultEnabled ? state.ultCdr / 100 : 0;
-        const haste = state.haste / 100;
+        const { tableHaste, tier } = frameTierForHaste(state.haste);
         const totalCdr = 1 - (1 - panel) * (1 - skill) * (1 - ultimate);
-        const baseCooldownFrames = state.baseCooldown * 30;
-        const rawAnimationFrames = state.baseFrames / (1 + haste);
-        const animationFrames = Math.ceil(rawAnimationFrames);
-        const animationSeconds = animationFrames / 30;
+        const displayedTotalCdr = Math.round(totalCdr * 10000) / 10000;
+        const baseCooldownFrames = BASE_COOLDOWN_SECONDS * FPS;
+        const animationFrames = tier.frames;
+        const animationSeconds = animationFrames / FPS;
         const actualCooldownFrames = baseCooldownFrames * (1 - totalCdr);
-        const actualCooldownSeconds = actualCooldownFrames / 30;
-        const seamlessThreshold = clamp(1 - animationFrames / baseCooldownFrames, 0, 0.9999);
-        const displayedThreshold = Math.round(seamlessThreshold * 10000) / 10000;
+        const actualCooldownSeconds = actualCooldownFrames / FPS;
+        const seamlessThreshold = Math.round((1 - animationFrames / baseCooldownFrames) * 10000) / 10000;
         const otherMultiplier = (1 - skill) * (1 - ultimate);
-        const rawMinimumPanel = 1 - (1 - displayedThreshold) / otherMultiplier;
-        const exactMinimumPanel = 1 - (1 - seamlessThreshold) / otherMultiplier;
-        const rawMinimumSkill = 1 - (1 - displayedThreshold) / ((1 - panel) * (1 - ultimate));
-        const exactMinimumSkill = 1 - (1 - seamlessThreshold) / ((1 - panel) * (1 - ultimate));
-        const recommendedPanel = Math.max(rawMinimumPanel, exactMinimumPanel);
-        const recommendedSkill = Math.max(rawMinimumSkill, exactMinimumSkill);
+        const recommendedPanel = 1 - (1 - seamlessThreshold) / otherMultiplier;
+        const recommendedSkill = 1 - (1 - seamlessThreshold) / ((1 - panel) * (1 - ultimate));
         const recommendedPanelValue = safePercentTarget(recommendedPanel);
         const minimumPanel = recommendedPanelValue / 100;
-        const isSeamless = actualCooldownFrames <= animationFrames + 0.000001;
+        const isSeamless = displayedTotalCdr >= seamlessThreshold;
         const gap = panel - minimumPanel;
-        const progress = clamp(totalCdr / Math.max(displayedThreshold, 0.0001), 0, 1);
-        const outputIntervalFrames = Math.max(actualCooldownFrames, animationFrames);
-        const outputIntervalSeconds = outputIntervalFrames / 30;
+        const progress = clamp(displayedTotalCdr / Math.max(seamlessThreshold, 0.0001), 0, 1);
+        const outputIntervalFrames = isSeamless ? animationFrames : Math.max(actualCooldownFrames, animationFrames);
+        const outputIntervalSeconds = outputIntervalFrames / FPS;
         const outputFrameTier = Math.ceil(outputIntervalFrames - 0.000001);
-        const maximumFrequency = 30 / animationFrames;
-        const currentFrequency = 30 / outputIntervalFrames;
+        const maximumFrequency = FPS / animationFrames;
+        const currentFrequency = FPS / outputIntervalFrames;
         const frequencyAchievement = clamp(currentFrequency / maximumFrequency, 0, 1);
 
         output.totalCdr.textContent = percent(totalCdr);
@@ -1198,7 +1200,7 @@
           : inputPercent(recommendedPanelValue);
         output.actualCooldown.textContent = `${actualCooldownSeconds.toFixed(3)} 秒 · ${actualCooldownFrames.toFixed(2)}f`;
         output.animationTime.textContent = `${animationSeconds.toFixed(3)} 秒 · ${animationFrames}f`;
-        output.animationFormula.textContent = `${state.baseFrames}f ÷ (1 + ${inputPercent(state.haste)}) = ${rawAnimationFrames.toFixed(2)}f，向上取整`;
+        output.animationFormula.textContent = `恶鬼攻略表：${tableHaste}% 落在 ${tier.min}%–${tier.max}% 档`;
         output.actualOutputInterval.textContent = `${outputIntervalSeconds.toFixed(3)} 秒 · ${outputIntervalFrames.toFixed(2)}f（约 ${outputFrameTier}f 档）`;
         output.fullDamageStatus.textContent = isSeamless
           ? "已达到 · 100%"
@@ -1211,12 +1213,12 @@
         output.gapLabel.textContent = isSeamless ? "无缝余量" : "距离无缝";
         output.seamlessStatus.textContent = isSeamless ? "已无缝" : "未无缝";
         output.statusCaption.textContent = isSeamless
-          ? `冷却 ${actualCooldownFrames.toFixed(2)}f ≤ 动画 ${animationFrames}f`
-          : `冷却 ${actualCooldownFrames.toFixed(2)}f > 动画 ${animationFrames}f`;
+          ? `综合冷缩 ${percent(displayedTotalCdr)} ≥ 无缝线 ${percent(seamlessThreshold)}`
+          : `综合冷缩 ${percent(displayedTotalCdr)} < 无缝线 ${percent(seamlessThreshold)}`;
         output.formulaText.textContent = state.ultEnabled
           ? `1 − (1 − ${inputPercent(state.panelCdr)}) × (1 − ${inputPercent(state.skillCdr)}) × (1 − ${inputPercent(state.ultCdr)}) = ${percent(totalCdr)}`
           : `1 − (1 − ${inputPercent(state.panelCdr)}) × (1 − ${inputPercent(state.skillCdr)}) = ${percent(totalCdr)}`;
-        output.thresholdText.textContent = `无缝线 ${(seamlessThreshold * 100).toFixed(4)}%`;
+        output.thresholdText.textContent = `无缝线 ${percent(seamlessThreshold)}`;
 
         setSuggestion(
           output.panelSuggestion,
@@ -1242,19 +1244,28 @@
         output.seamlessStatus.style.color = statusColor;
         output.gaugeValue.style.stroke = statusColor;
         output.gaugeValue.style.strokeDashoffset = String(CIRCUMFERENCE * (1 - progress));
+        output.resultHint.textContent = "恶鬼表 · 6秒 CD · 30帧/秒";
+        output.resultHint.style.color = "";
 
         ultField.hidden = !state.ultEnabled;
         saveState(state);
       }
 
+      function markDirty() {
+        output.resultHint.textContent = "参数已修改，请点击计算";
+        output.resultHint.style.color = "var(--gold)";
+        ultField.hidden = !fields.ultEnabled.checked;
+      }
+
       Object.values(fields).forEach((field) => {
-        field.addEventListener("input", calculate);
-        field.addEventListener("change", calculate);
+        field.addEventListener("input", markDirty);
+        field.addEventListener("change", markDirty);
       });
+
+      document.getElementById("calculateButton").addEventListener("click", calculate);
 
       document.getElementById("exampleButton").addEventListener("click", () => {
         writeState(articleExample);
-        document.querySelector("details").open = true;
         calculate();
       });
 
