@@ -791,10 +791,10 @@
     <section class="intro" aria-labelledby="page-title">
       <div>
         <h1 id="page-title">急速 / 冷缩计算器</h1>
-        <p>输入面板冷缩、独立技能冷缩和技能急速，即时查看综合冷缩、满频伤害帧率与改进建议。</p>
+        <p>急速本身不固定对应某个帧数，需结合技能初始动画帧数计算。例如地狱喷泉初始 32f，204% 急速对应 11f。</p>
       </div>
       <div class="actions">
-        <button class="button primary" id="exampleButton" type="button">文章示例</button>
+        <button class="button primary" id="exampleButton" type="button">地狱喷泉示例</button>
         <button class="button" id="resetButton" type="button" title="恢复默认值">↺ 重置</button>
       </div>
     </section>
@@ -832,17 +832,28 @@
           <div class="field">
             <div class="field-label">
               <label for="haste">技能急速</label>
-              <small>用于缩短非普攻技能的攻击动画</small>
+              <small>需与技能初始动画帧数一起计算</small>
             </div>
             <div class="input-wrap">
               <input id="haste" type="number" min="0" max="10000" step="1" inputmode="decimal" value="0">
               <span class="unit">%</span>
             </div>
           </div>
+
+          <div class="field">
+            <div class="field-label">
+              <label for="baseFrames">初始动画帧数</label>
+              <small>地狱喷泉为 32f；204% 急速时对应 11f</small>
+            </div>
+            <div class="input-wrap">
+              <input id="baseFrames" type="number" min="1" max="999" step="1" inputmode="numeric" value="32">
+              <span class="unit">f</span>
+            </div>
+          </div>
         </div>
 
         <details>
-          <summary>技能参数与大招冷缩</summary>
+          <summary>技能冷却与大招冷缩</summary>
           <div class="advanced-fields">
             <div class="field">
               <div class="field-label">
@@ -852,17 +863,6 @@
               <div class="input-wrap">
                 <input id="baseCooldown" type="number" min="0.01" max="999" step="0.01" inputmode="decimal" value="3">
                 <span class="unit">秒</span>
-              </div>
-            </div>
-
-            <div class="field">
-              <div class="field-label">
-                <label for="baseFrames">初始动画帧数</label>
-                <small>文章表格中急速为 0% 时的帧数</small>
-              </div>
-              <div class="input-wrap">
-                <input id="baseFrames" type="number" min="1" max="999" step="1" inputmode="numeric" value="32">
-                <span class="unit">f</span>
               </div>
             </div>
 
@@ -937,7 +937,7 @@
             <div class="metric">
               <div class="metric-label">
                 <strong>急速后动画</strong>
-                帧数向上取整
+                <span id="animationFormula">32f ÷ (1 + 0%) = 32.00f，向上取整</span>
               </div>
               <div class="metric-value" id="animationTime">1.067 秒 · 32f</div>
             </div>
@@ -1002,7 +1002,7 @@
       </div>
       <div class="note">
         <strong>急速采用帧数档位</strong>
-        动画帧数 = 向上取整〔初始帧数 ÷ (1 + 急速)〕；实际 CD 不大于动画时间时判定无缝。
+        急速百分比不能单独决定帧数。动画帧数 = 向上取整〔初始帧数 ÷ (1 + 急速)〕；实际 CD 不大于动画时间时判定无缝。
       </div>
       <div class="note">
         <strong>满频不等于最终总伤害</strong>
@@ -1055,6 +1055,7 @@
         minPanelCdr: document.getElementById("minPanelCdr"),
         actualCooldown: document.getElementById("actualCooldown"),
         animationTime: document.getElementById("animationTime"),
+        animationFormula: document.getElementById("animationFormula"),
         actualOutputInterval: document.getElementById("actualOutputInterval"),
         fullDamageStatus: document.getElementById("fullDamageStatus"),
         fullDamageTarget: document.getElementById("fullDamageTarget"),
@@ -1165,7 +1166,8 @@
         const haste = state.haste / 100;
         const totalCdr = 1 - (1 - panel) * (1 - skill) * (1 - ultimate);
         const baseCooldownFrames = state.baseCooldown * 30;
-        const animationFrames = Math.ceil(state.baseFrames / (1 + haste));
+        const rawAnimationFrames = state.baseFrames / (1 + haste);
+        const animationFrames = Math.ceil(rawAnimationFrames);
         const animationSeconds = animationFrames / 30;
         const actualCooldownFrames = baseCooldownFrames * (1 - totalCdr);
         const actualCooldownSeconds = actualCooldownFrames / 30;
@@ -1196,6 +1198,7 @@
           : inputPercent(recommendedPanelValue);
         output.actualCooldown.textContent = `${actualCooldownSeconds.toFixed(3)} 秒 · ${actualCooldownFrames.toFixed(2)}f`;
         output.animationTime.textContent = `${animationSeconds.toFixed(3)} 秒 · ${animationFrames}f`;
+        output.animationFormula.textContent = `${state.baseFrames}f ÷ (1 + ${inputPercent(state.haste)}) = ${rawAnimationFrames.toFixed(2)}f，向上取整`;
         output.actualOutputInterval.textContent = `${outputIntervalSeconds.toFixed(3)} 秒 · ${outputIntervalFrames.toFixed(2)}f（约 ${outputFrameTier}f 档）`;
         output.fullDamageStatus.textContent = isSeamless
           ? "已达到 · 100%"
