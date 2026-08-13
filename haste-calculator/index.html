@@ -791,7 +791,7 @@
     <section class="intro" aria-labelledby="page-title">
       <div>
         <h1 id="page-title">恶鬼急速 / 冷缩计算器</h1>
-        <p>按 S14 恶鬼急速表离散查档：172% 对应 13f、无缝 CDR 92.78%；173% 对应 12f、无缝 CDR 93.33%。</p>
+        <p>按 S14 恶鬼急速表离散查档；技能基础冷却可按实际技能输入 3 秒、6 秒或其他数值。</p>
       </div>
       <div class="actions">
         <button class="button primary" id="calculateButton" type="button">计算</button>
@@ -838,6 +838,17 @@
             <div class="input-wrap">
               <input id="haste" type="number" min="0" max="250" step="1" inputmode="numeric" value="173">
               <span class="unit">%</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">
+              <label for="baseCooldown">技能基础冷却</label>
+              <small>技能说明中的原始 CD，如 3 秒或 6 秒</small>
+            </div>
+            <div class="input-wrap">
+              <input id="baseCooldown" type="number" min="0.01" max="999" step="0.01" inputmode="decimal" value="6">
+              <span class="unit">秒</span>
             </div>
           </div>
         </div>
@@ -908,22 +919,22 @@
             </div>
             <div class="metric">
               <div class="metric-label">
-                <strong>技能实际冷却</strong>
-                综合冷缩后的 CD
+                <strong>冷却计时走完</strong>
+                基础 CD × 剩余冷却；这不是急速档位
               </div>
-              <div class="metric-value" id="actualCooldown">1.500 秒 · 45.00f</div>
+              <div class="metric-value" id="actualCooldown">1.500 秒 · 45.00f（CD计时）</div>
             </div>
             <div class="metric">
               <div class="metric-label">
-                <strong>急速后动画</strong>
-                <span id="animationFormula">恶鬼攻略表：173% 对应 12f</span>
+                <strong>急速对应帧数（查表）</strong>
+                <span id="animationFormula">只由技能急速决定：204% 对应 11f</span>
               </div>
-              <div class="metric-value" id="animationTime">1.067 秒 · 32f</div>
+              <div class="metric-value accent" id="animationTime">0.367 秒 · 11f 档</div>
             </div>
             <div class="metric">
               <div class="metric-label">
                 <strong>实际输出间隔</strong>
-                冷却与动画中较慢的一项
+                取“CD计时”和“急速查表帧数”中较慢的一项
               </div>
               <div class="metric-value" id="actualOutputInterval">1.500 秒 · 45.00f</div>
             </div>
@@ -1001,7 +1012,6 @@
       const STORAGE_KEY = "mist-evil-ghost-calculator-v1";
       const CIRCUMFERENCE = 2 * Math.PI * 50;
       const FPS = 30;
-      const BASE_COOLDOWN_SECONDS = 6;
       const FRAME_TIERS = [
         { min: 0, max: 0, frames: 32 },
         { min: 1, max: 3, frames: 31 },
@@ -1031,6 +1041,7 @@
         panelCdr: 50,
         skillCdr: 0,
         haste: 173,
+        baseCooldown: 6,
         ultEnabled: false,
         ultCdr: 25
       };
@@ -1038,6 +1049,7 @@
         panelCdr: 93.33,
         skillCdr: 0,
         haste: 173,
+        baseCooldown: 6,
         ultEnabled: false,
         ultCdr: 25
       };
@@ -1046,6 +1058,7 @@
         panelCdr: document.getElementById("panelCdr"),
         skillCdr: document.getElementById("skillCdr"),
         haste: document.getElementById("haste"),
+        baseCooldown: document.getElementById("baseCooldown"),
         ultEnabled: document.getElementById("ultEnabled"),
         ultCdr: document.getElementById("ultCdr")
       };
@@ -1132,6 +1145,7 @@
           panelCdr: numberValue(fields.panelCdr, defaults.panelCdr, 0, 99.99),
           skillCdr: numberValue(fields.skillCdr, defaults.skillCdr, 0, 99.99),
           haste: numberValue(fields.haste, defaults.haste, 0, 250),
+          baseCooldown: numberValue(fields.baseCooldown, defaults.baseCooldown, 0.01, 999),
           ultEnabled: fields.ultEnabled.checked,
           ultCdr: numberValue(fields.ultCdr, defaults.ultCdr, 0, 99.99)
         };
@@ -1173,7 +1187,7 @@
         const { tableHaste, tier } = frameTierForHaste(state.haste);
         const totalCdr = 1 - (1 - panel) * (1 - skill) * (1 - ultimate);
         const displayedTotalCdr = Math.round(totalCdr * 10000) / 10000;
-        const baseCooldownFrames = BASE_COOLDOWN_SECONDS * FPS;
+        const baseCooldownFrames = state.baseCooldown * FPS;
         const animationFrames = tier.frames;
         const animationSeconds = animationFrames / FPS;
         const actualCooldownFrames = baseCooldownFrames * (1 - totalCdr);
@@ -1198,9 +1212,9 @@
         output.minPanelCdr.textContent = recommendedPanel <= 0
           ? "0%（已满足）"
           : inputPercent(recommendedPanelValue);
-        output.actualCooldown.textContent = `${actualCooldownSeconds.toFixed(3)} 秒 · ${actualCooldownFrames.toFixed(2)}f`;
-        output.animationTime.textContent = `${animationSeconds.toFixed(3)} 秒 · ${animationFrames}f`;
-        output.animationFormula.textContent = `恶鬼攻略表：${tableHaste}% 落在 ${tier.min}%–${tier.max}% 档`;
+        output.actualCooldown.textContent = `${actualCooldownSeconds.toFixed(3)} 秒 · ${actualCooldownFrames.toFixed(2)}f（CD计时）`;
+        output.animationTime.textContent = `${animationSeconds.toFixed(3)} 秒 · ${animationFrames}f 档`;
+        output.animationFormula.textContent = `恶鬼攻略表：${tableHaste}% 急速落在 ${tier.min}%–${tier.max}% 区间，固定对应 ${animationFrames}f`;
         output.actualOutputInterval.textContent = `${outputIntervalSeconds.toFixed(3)} 秒 · ${outputIntervalFrames.toFixed(2)}f（约 ${outputFrameTier}f 档）`;
         output.fullDamageStatus.textContent = isSeamless
           ? "已达到 · 100%"
@@ -1244,7 +1258,7 @@
         output.seamlessStatus.style.color = statusColor;
         output.gaugeValue.style.stroke = statusColor;
         output.gaugeValue.style.strokeDashoffset = String(CIRCUMFERENCE * (1 - progress));
-        output.resultHint.textContent = "恶鬼表 · 6秒 CD · 30帧/秒";
+        output.resultHint.textContent = `${tableHaste}% 急速 = ${animationFrames}f · 基础 CD ${state.baseCooldown}秒`;
         output.resultHint.style.color = "";
 
         ultField.hidden = !state.ultEnabled;
