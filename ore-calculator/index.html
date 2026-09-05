@@ -822,7 +822,7 @@
           <input id="platinumCount" type="number" min="1" step="1" inputmode="numeric" value="17">
           <span class="unit">个</span>
         </div>
-        <small>默认按铜 ÷ 21.2 四舍五入，也可以手动修改。</small>
+        <small>按游戏内校准点估算；285及以下按铜 ÷ 21.2，以上按校准点插值，也可以手动修改。</small>
       </div>
     </section>
     <div class="error" id="quantityError" role="alert"></div>
@@ -946,11 +946,11 @@
   </main>
 
   <footer>
-    计算前提：银数量 = 铜数量 × 0.4，金数量 = 铜数量 × 0.2，铂金数量默认约为铜数量 ÷ 21.2；价格单位统一为每100个。实际交易规则变化时请以最新数据为准。
+    计算前提：银数量 = 铜数量 × 0.4，金数量 = 铜数量 × 0.2；铂金采用游戏内校准点估算（310→14、330→15、355→17、375→19），也可手动修改。价格单位统一为每100个。
   </footer>
 
   <script type="module">
-    import { calculateBalance, DEFAULT_QUANTITY_OPTIONS, ITEMS } from "./calculator.js";
+    import { calculateBalance, DEFAULT_QUANTITY_OPTIONS, ITEMS, resolveQuantities } from "./calculator.js";
 
     const STORAGE_KEY = "ore-balance-calculator-v2";
     const itemKeys = Object.keys(ITEMS);
@@ -1039,7 +1039,7 @@
 
       const silverCount = Math.max(1, Math.round(copperCount * 0.4));
       const goldCount = Math.max(1, Math.round(copperCount * 0.2));
-      const autoPlatinumCount = Math.max(1, Math.round(copperCount / 21.2));
+      const autoPlatinumCount = resolveQuantities({ copperCount }).铂金;
       silverCountInput.value = String(silverCount);
       goldCountInput.value = String(goldCount);
 

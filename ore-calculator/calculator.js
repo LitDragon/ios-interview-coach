@@ -10,6 +10,13 @@ export const DEFAULT_QUANTITY_OPTIONS = Object.freeze({
 });
 
 const PLATINUM_DIVISOR = 21.2;
+export const PLATINUM_CALIBRATION = Object.freeze([
+  Object.freeze({ copperCount: 285, platinumCount: 13 }),
+  Object.freeze({ copperCount: 310, platinumCount: 14 }),
+  Object.freeze({ copperCount: 330, platinumCount: 15 }),
+  Object.freeze({ copperCount: 355, platinumCount: 17 }),
+  Object.freeze({ copperCount: 375, platinumCount: 19 })
+]);
 const EPSILON = 0.0000001;
 
 function parsePositive(value, label) {
@@ -41,6 +48,31 @@ function roundQuantity(value) {
   return Math.max(1, Math.round(value));
 }
 
+function estimatePlatinumCount(copperCount) {
+  if (copperCount <= PLATINUM_CALIBRATION[0].copperCount) {
+    return roundQuantity(copperCount / PLATINUM_DIVISOR);
+  }
+
+  for (let index = 1; index < PLATINUM_CALIBRATION.length; index += 1) {
+    const previous = PLATINUM_CALIBRATION[index - 1];
+    const current = PLATINUM_CALIBRATION[index];
+    if (copperCount <= current.copperCount) {
+      const progress = (copperCount - previous.copperCount) /
+        (current.copperCount - previous.copperCount);
+      const estimate = previous.platinumCount +
+        progress * (current.platinumCount - previous.platinumCount);
+      return roundQuantity(estimate);
+    }
+  }
+
+  const previous = PLATINUM_CALIBRATION[PLATINUM_CALIBRATION.length - 2];
+  const current = PLATINUM_CALIBRATION[PLATINUM_CALIBRATION.length - 1];
+  const progress = (copperCount - current.copperCount) /
+    (current.copperCount - previous.copperCount);
+  return roundQuantity(current.platinumCount + progress *
+    (current.platinumCount - previous.platinumCount));
+}
+
 export function resolveQuantities(quantityOptions = {}) {
   const copperCount = parsePositiveInteger(
     quantityOptions.copperCount ?? DEFAULT_QUANTITY_OPTIONS.copperCount,
@@ -48,7 +80,7 @@ export function resolveQuantities(quantityOptions = {}) {
   );
   const platinumInput = quantityOptions.platinumCount;
   const platinumCount = platinumInput === undefined || platinumInput === null || platinumInput === ""
-    ? roundQuantity(copperCount / PLATINUM_DIVISOR)
+    ? estimatePlatinumCount(copperCount)
     : parsePositiveInteger(platinumInput, "铂金数量");
 
   return {

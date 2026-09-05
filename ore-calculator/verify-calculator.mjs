@@ -41,6 +41,11 @@ assert.equal(variableQuantities.rows.铂金.bundleValue, 14.2);
 const manuallySized = resolveQuantities({ copperCount: 355, platinumCount: 11 });
 assert.equal(manuallySized.铂金, 11);
 
+assert.equal(resolveQuantities({ copperCount: 310 }).铂金, 14);
+assert.equal(resolveQuantities({ copperCount: 330 }).铂金, 15);
+assert.equal(resolveQuantities({ copperCount: 355 }).铂金, 17);
+assert.equal(resolveQuantities({ copperCount: 375 }).铂金, 19);
+
 const compared = calculateBalance("银", 10, {
   铜: 3,
   银: 10.5,
