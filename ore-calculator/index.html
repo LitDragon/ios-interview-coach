@@ -219,6 +219,17 @@
       align-items: stretch;
     }
 
+    .quantity-panel {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 16px;
+    }
+
+    .quantity-panel input[readonly] {
+      border-color: #39424b;
+      background: #171c22;
+      color: var(--muted);
+    }
+
     .input-block {
       min-width: 0;
       padding: 19px 20px 20px;
@@ -583,6 +594,19 @@
         grid-template-columns: 1fr 1fr;
       }
 
+      .quantity-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .quantity-panel .input-block:nth-child(3),
+      .quantity-panel .input-block:nth-child(4) {
+        border-top: 1px solid var(--line-soft);
+      }
+
+      .quantity-panel .input-block:nth-child(3) {
+        border-left: 0;
+      }
+
       .input-block.actions-block {
         grid-column: 1 / -1;
         border-top: 1px solid var(--line-soft);
@@ -728,10 +752,10 @@
     <section class="intro" aria-labelledby="page-title">
       <div>
         <h1 id="page-title">矿石平衡价格计算器</h1>
-        <p>输入任意一种矿石的“每100个”价格，就能反推出另外三种的理论平衡价；再填入实际售价，可直接看出哪种适合卖出、哪种适合买入。</p>
+        <p>输入任意一种矿石的“每100个”价格，页面会按当前数量反推出另外三种的理论平衡价；价格低于平衡价适合买入，高于平衡价适合卖出。</p>
       </div>
       <div class="actions">
-        <button class="button primary" id="exampleButton" type="button">铜 0.4 示例</button>
+        <button class="button primary" id="exampleButton" type="button">银 10 示例</button>
         <button class="button" id="resetButton" type="button">↺ 重置</button>
       </div>
     </section>
@@ -741,7 +765,7 @@
         <label class="label" for="inputItem">已知价格的物品</label>
         <select id="inputItem">
           <option value="铜">铜</option>
-          <option value="银">银</option>
+          <option value="银" selected>银</option>
           <option value="金">金</option>
           <option value="铂金">铂金</option>
         </select>
@@ -751,10 +775,10 @@
       <div class="input-block">
         <label class="label" for="inputPrice">已知价格</label>
         <div class="control">
-          <input id="inputPrice" type="number" min="0.0001" step="0.0001" inputmode="decimal" value="0.4">
+          <input id="inputPrice" type="number" min="0.0001" step="0.0001" inputmode="decimal" value="10">
           <span class="unit">/ 100个</span>
         </div>
-        <small>例如：铜每100个卖 0.4。</small>
+        <small>例如：银每100个卖 10。</small>
         <div class="error" id="inputError" role="alert"></div>
       </div>
 
@@ -764,12 +788,51 @@
       </div>
     </section>
 
+    <section class="input-panel quantity-panel" aria-label="矿石数量设置">
+      <div class="input-block">
+        <label class="label" for="copperCount">铜数量</label>
+        <div class="control">
+          <input id="copperCount" type="number" min="1" step="1" inputmode="numeric" value="355">
+          <span class="unit">个</span>
+        </div>
+        <small>数量基准；银和金按固定比例自动换算。</small>
+      </div>
+
+      <div class="input-block">
+        <label class="label" for="silverCount">银数量</label>
+        <div class="control">
+          <input id="silverCount" type="number" readonly aria-readonly="true">
+          <span class="unit">个</span>
+        </div>
+        <small>铜数量 × 0.4，自动四舍五入。</small>
+      </div>
+
+      <div class="input-block">
+        <label class="label" for="goldCount">金数量</label>
+        <div class="control">
+          <input id="goldCount" type="number" readonly aria-readonly="true">
+          <span class="unit">个</span>
+        </div>
+        <small>铜数量 × 0.2，自动四舍五入。</small>
+      </div>
+
+      <div class="input-block">
+        <label class="label" for="platinumCount">铂金数量</label>
+        <div class="control">
+          <input id="platinumCount" type="number" min="1" step="1" inputmode="numeric" value="17">
+          <span class="unit">个</span>
+        </div>
+        <small>默认按铜 ÷ 21.2 四舍五入，也可以手动修改。</small>
+      </div>
+    </section>
+    <div class="error" id="quantityError" role="alert"></div>
+
     <div class="rule-strip" role="note">
       <div>
         <strong>平衡前提</strong>
-        <span>100个为一组；每种原始数量折算后应有相同的整组总价值。</span>
+        <span>100个为一组；当前数量对应的整组总价值相同。</span>
       </div>
-      <span class="rule-equation">220铜 = 88银 = 44金 = 10铂金</span>
+      <span class="rule-equation" id="quantityEquation">355铜 · 142银 · 71金 · 17铂金</span>
     </div>
 
     <section class="summary-grid" aria-label="矿石计算摘要">
@@ -873,23 +936,23 @@
     <section class="info-panel" aria-label="计算说明">
       <div class="info-block">
         <h3>怎么算出来？</h3>
-        <p>先用“已知价格 ÷ 相对铜倍率”得到铜的理论价，再乘回每种物品的倍率。例如铜为 0.4，则银 = 0.4 × 2.5 = 1.0，金 = 0.4 × 5 = 2.0，铂金 = 0.4 × 22 = 8.8。</p>
+        <p>平衡价格 = 已知价格 × 已知物品数量 ÷ 目标物品数量。比如铜 355、银 142、金 71、铂金 17，若银每100个为 10，则铜为 4，金为 20，铂金约为 83.5294。</p>
       </div>
       <div class="info-block">
         <h3>怎么判断赚亏？</h3>
-        <p>理论价只代表平衡基准，不是交易所的真实售价。把市场实际价填到表格后，页面会把高于理论价的标成“卖出更高”，低于理论价的标成“买入更划算”。</p>
+        <p>理论价只代表平衡基准，不是交易所的真实售价。实际价低于理论价，说明买入更划算；实际价高于理论价，说明卖出更赚。表格中的实际价可以留空。</p>
       </div>
     </section>
   </main>
 
   <footer>
-    计算前提来自你提供的物品数量与倍率：铜 220、银 88、金 44、铂金 10；价格单位统一为每100个。实际交易规则变化时请以最新数据为准。
+    计算前提：银数量 = 铜数量 × 0.4，金数量 = 铜数量 × 0.2，铂金数量默认约为铜数量 ÷ 21.2；价格单位统一为每100个。实际交易规则变化时请以最新数据为准。
   </footer>
 
   <script type="module">
-    import { calculateBalance, ITEMS } from "./calculator.js";
+    import { calculateBalance, DEFAULT_QUANTITY_OPTIONS, ITEMS } from "./calculator.js";
 
-    const STORAGE_KEY = "ore-balance-calculator-v1";
+    const STORAGE_KEY = "ore-balance-calculator-v2";
     const itemKeys = Object.keys(ITEMS);
     const itemInputIds = {
       铜: "actual-copper",
@@ -900,7 +963,13 @@
     const inputItem = document.getElementById("inputItem");
     const inputPrice = document.getElementById("inputPrice");
     const inputError = document.getElementById("inputError");
+    const copperCountInput = document.getElementById("copperCount");
+    const silverCountInput = document.getElementById("silverCount");
+    const goldCountInput = document.getElementById("goldCount");
+    const platinumCountInput = document.getElementById("platinumCount");
+    const quantityError = document.getElementById("quantityError");
     const rows = Array.from(document.querySelectorAll("tr[data-item]"));
+    let lastAutoPlatinumCount = Number(platinumCountInput.value);
 
     function formatPrice(value) {
       return new Intl.NumberFormat("zh-CN", {
@@ -931,6 +1000,8 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           inputItem: inputItem.value,
           inputPrice: inputPrice.value,
+          copperCount: copperCountInput.value,
+          platinumCount: platinumCountInput.value,
           actualPrices: actualPrices()
         }));
       } catch (_) {
@@ -943,7 +1014,11 @@
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
         if (saved && itemKeys.includes(saved.inputItem)) {
           inputItem.value = saved.inputItem;
-          inputPrice.value = saved.inputPrice || "0.4";
+          inputPrice.value = saved.inputPrice || "10";
+          copperCountInput.value = saved.copperCount || String(DEFAULT_QUANTITY_OPTIONS.copperCount);
+          if (saved.platinumCount !== undefined && saved.platinumCount !== null && saved.platinumCount !== "") {
+            platinumCountInput.value = saved.platinumCount;
+          }
           itemKeys.forEach((name) => {
             const value = saved.actualPrices && saved.actualPrices[name];
             if (value !== undefined && value !== null && value !== "") {
@@ -954,6 +1029,32 @@
       } catch (_) {
         // Use defaults when storage is unavailable or invalid.
       }
+    }
+
+    function syncDerivedQuantityInputs(forcePlatinum = false) {
+      const copperCount = Number(copperCountInput.value);
+      if (!Number.isInteger(copperCount) || copperCount <= 0) {
+        return;
+      }
+
+      const silverCount = Math.max(1, Math.round(copperCount * 0.4));
+      const goldCount = Math.max(1, Math.round(copperCount * 0.2));
+      const autoPlatinumCount = Math.max(1, Math.round(copperCount / 21.2));
+      silverCountInput.value = String(silverCount);
+      goldCountInput.value = String(goldCount);
+
+      const currentPlatinumCount = Number(platinumCountInput.value);
+      if (forcePlatinum || platinumCountInput.value === "" || currentPlatinumCount === lastAutoPlatinumCount) {
+        platinumCountInput.value = String(autoPlatinumCount);
+      }
+      lastAutoPlatinumCount = autoPlatinumCount;
+    }
+
+    function quantityOptions() {
+      return {
+        copperCount: copperCountInput.value,
+        platinumCount: platinumCountInput.value
+      };
     }
 
     function setStatus(element, status, text) {
@@ -974,9 +1075,11 @@
 
     function render() {
       inputError.textContent = "";
+      quantityError.textContent = "";
       try {
+        syncDerivedQuantityInputs();
         updateSelectedActualInput();
-        const result = calculateBalance(inputItem.value, inputPrice.value, actualPrices());
+        const result = calculateBalance(inputItem.value, inputPrice.value, actualPrices(), quantityOptions());
 
         rows.forEach((row) => {
           const name = row.dataset.item;
@@ -1000,6 +1103,9 @@
 
         document.getElementById("baseCopperPrice").textContent = formatPrice(result.baseCopperPrice);
         document.getElementById("bundleValue").textContent = formatPrice(result.rows.铜.bundleValue);
+        document.getElementById("quantityEquation").textContent = itemKeys
+          .map((name) => `${formatPrice(result.rows[name].count)}${name}`)
+          .join(" · ");
         document.getElementById("bestSell").textContent = result.bestSell || "—";
         document.getElementById("bestBuy").textContent = result.bestBuy || "—";
         document.getElementById("bestSellHint").textContent = result.bestSell
@@ -1011,19 +1117,29 @@
         document.getElementById("comparisonHint").textContent = "已比较 " + result.comparedCount + " / 4 种物品";
         saveState();
       } catch (error) {
-        inputError.textContent = error.message;
+        if (error.message.includes("数量")) {
+          quantityError.textContent = error.message;
+        } else {
+          inputError.textContent = error.message;
+        }
       }
     }
 
     function setExample() {
-      inputItem.value = "铜";
-      inputPrice.value = "0.4";
+      inputItem.value = "银";
+      inputPrice.value = "10";
+      copperCountInput.value = String(DEFAULT_QUANTITY_OPTIONS.copperCount);
+      platinumCountInput.value = "17";
+      lastAutoPlatinumCount = 17;
       render();
     }
 
     function reset() {
-      inputItem.value = "铜";
-      inputPrice.value = "0.4";
+      inputItem.value = "银";
+      inputPrice.value = "10";
+      copperCountInput.value = String(DEFAULT_QUANTITY_OPTIONS.copperCount);
+      platinumCountInput.value = "";
+      lastAutoPlatinumCount = null;
       itemKeys.forEach((name) => {
         document.getElementById(itemInputIds[name]).value = "";
       });
@@ -1043,11 +1159,14 @@
     document.getElementById("calculateButton").addEventListener("click", render);
     inputItem.addEventListener("change", render);
     inputPrice.addEventListener("input", render);
+    copperCountInput.addEventListener("input", render);
+    platinumCountInput.addEventListener("input", render);
     itemKeys.forEach((name) => {
       document.getElementById(itemInputIds[name]).addEventListener("input", render);
     });
 
     loadState();
+    lastAutoPlatinumCount = Number(platinumCountInput.value);
     render();
   </script>
 </body>
