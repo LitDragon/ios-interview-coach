@@ -123,6 +123,22 @@
       text-decoration: none;
     }
 
+    .topbar-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .tool-link {
+      color: var(--gold);
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .tool-link:hover {
+      text-decoration: underline;
+    }
+
     .source-link:hover {
       text-decoration: underline;
     }
@@ -686,6 +702,10 @@
         display: none;
       }
 
+      .topbar-links {
+        gap: 11px;
+      }
+
       main {
         padding-top: 26px;
       }
@@ -781,9 +801,12 @@
           <span>恶鬼帧数表与无缝判定</span>
         </div>
       </div>
-      <a class="source-link" href="https://mp.weixin.qq.com/s/vl50UTDe0n6C2xRUbK9ugQ" target="_blank" rel="noreferrer">
-        计算依据 <span>· 急速终极详解</span>
-      </a>
+      <div class="topbar-links">
+        <a class="tool-link" href="../ore-calculator/">矿石计算器</a>
+        <a class="source-link" href="https://mp.weixin.qq.com/s/vl50UTDe0n6C2xRUbK9ugQ" target="_blank" rel="noreferrer">
+          计算依据 <span>· 急速终极详解</span>
+        </a>
+      </div>
     </div>
   </header>
 

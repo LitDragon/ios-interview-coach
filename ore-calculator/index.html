@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101419">
+  <title>矿石平衡价格计算器</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101419;
+      --panel: #181d23;
+      --panel-strong: #20262e;
+      --panel-soft: #151a20;
+      --line: #313943;
+      --line-soft: #272e36;
+      --text: #f2f4f6;
+      --muted: #a7b0ba;
+      --copper: #d49a70;
+      --silver: #bccbd7;
+      --gold: #e9bd65;
+      --platinum: #80dbd2;
+      --green: #79d8a0;
+      --red: #ef8b78;
+      --focus: #8ce4db;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    a,
+    button,
+    input,
+    select {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--focus) 48%, transparent);
+      outline-offset: 2px;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .topbar {
+      border-bottom: 1px solid var(--line-soft);
+      background: #13181e;
+    }
+
+    .topbar-inner,
+    main,
+    footer {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 68px;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      place-items: center;
+      border: 1px solid #80633b;
+      border-radius: 50%;
+      color: var(--gold);
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .brand strong,
+    .brand span {
+      display: block;
+    }
+
+    .brand strong {
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .brand span {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .nav a {
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .nav a:hover,
+    .nav a[aria-current="page"] {
+      color: var(--platinum);
+    }
+
+    main {
+      padding: 42px 0 30px;
+    }
+
+    .intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 24px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: 36px;
+      line-height: 1.18;
+    }
+
+    .intro p {
+      max-width: 760px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .actions {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 8px;
+    }
+
+    .button {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-strong);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .button:hover {
+      border-color: #56616e;
+      background: #29313a;
+    }
+
+    .button.primary {
+      border-color: #8d6d32;
+      background: var(--gold);
+      color: #211b11;
+    }
+
+    .button.primary:hover {
+      background: #f1c979;
+    }
+
+    .input-panel,
+    .table-panel,
+    .info-panel {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .input-panel {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) minmax(260px, 1.1fr);
+      align-items: stretch;
+    }
+
+    .input-block {
+      min-width: 0;
+      padding: 19px 20px 20px;
+    }
+
+    .input-block + .input-block {
+      border-left: 1px solid var(--line-soft);
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .input-block small {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .control {
+      position: relative;
+    }
+
+    select,
+    input[type="number"] {
+      width: 100%;
+      height: 44px;
+      border: 1px solid #48515c;
+      border-radius: 6px;
+      background: #11161b;
+      color: var(--text);
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 750;
+    }
+
+    select {
+      padding: 0 11px;
+    }
+
+    input[type="number"] {
+      padding: 0 47px 0 12px;
+    }
+
+    select:hover,
+    input[type="number"]:hover {
+      border-color: #65717e;
+    }
+
+    select:focus,
+    input[type="number"]:focus {
+      border-color: var(--focus);
+    }
+
+    .unit {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+
+    .input-block.actions-block {
+      display: flex;
+      align-items: flex-end;
+      gap: 9px;
+    }
+
+    .actions-block .button {
+      flex: 1 1 0;
+    }
+
+    .rule-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 61px;
+      margin-top: 16px;
+      padding: 12px 18px;
+      border: 1px solid var(--line-soft);
+      border-radius: 6px;
+      background: var(--panel-soft);
+      gap: 18px;
+    }
+
+    .rule-strip strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .rule-strip span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .rule-equation {
+      color: var(--gold) !important;
+      font-size: 15px !important;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .summary-card {
+      min-width: 0;
+      padding: 16px 18px;
+    }
+
+    .summary-card + .summary-card {
+      border-left: 1px solid var(--line-soft);
+    }
+
+    .summary-card span,
+    .summary-card strong {
+      display: block;
+    }
+
+    .summary-card span {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .summary-card strong {
+      min-height: 23px;
+      color: var(--text);
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .summary-card strong.accent {
+      color: var(--gold);
+    }
+
+    .summary-card small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin: 28px 0 12px;
+      gap: 16px;
+    }
+
+    .section-heading h2 {
+      margin-bottom: 0;
+      font-size: 17px;
+    }
+
+    .section-heading p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      padding: 14px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #14191f;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+
+    td {
+      color: var(--text);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: #1c2229;
+    }
+
+    .ore-name {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .ore-name[data-item="铜"] {
+      color: var(--copper);
+    }
+
+    .ore-name[data-item="银"] {
+      color: var(--silver);
+    }
+
+    .ore-name[data-item="金"] {
+      color: var(--gold);
+    }
+
+    .ore-name[data-item="铂金"] {
+      color: var(--platinum);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .theoretical {
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    .actual-cell {
+      position: relative;
+    }
+
+    .actual-cell input {
+      width: 124px;
+      height: 35px;
+      padding: 0 10px;
+      border: 1px solid #46505b;
+      border-radius: 5px;
+      background: #11161b;
+      color: var(--text);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .actual-cell input:disabled {
+      border-color: #7a6034;
+      background: #201d17;
+      color: var(--gold);
+      opacity: 1;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    .status.sell {
+      border-color: color-mix(in srgb, var(--green) 44%, var(--line));
+      color: var(--green);
+    }
+
+    .status.buy {
+      border-color: color-mix(in srgb, var(--red) 44%, var(--line));
+      color: var(--red);
+    }
+
+    .status.balanced {
+      border-color: color-mix(in srgb, var(--gold) 44%, var(--line));
+      color: var(--gold);
+    }
+
+    .table-foot {
+      display: flex;
+      justify-content: space-between;
+      padding: 13px 15px;
+      border-top: 1px solid var(--line-soft);
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      gap: 18px;
+    }
+
+    .info-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 18px;
+    }
+
+    .info-block {
+      padding: 18px 20px;
+    }
+
+    .info-block + .info-block {
+      border-left: 1px solid var(--line-soft);
+    }
+
+    .info-block h3 {
+      margin-bottom: 7px;
+      font-size: 14px;
+    }
+
+    .info-block p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .error {
+      min-height: 20px;
+      margin-top: 8px;
+      color: var(--red);
+      font-size: 12px;
+    }
+
+    footer {
+      padding: 0 0 32px;
+      color: #7f8994;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 840px) {
+      .input-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .input-block.actions-block {
+        grid-column: 1 / -1;
+        border-top: 1px solid var(--line-soft);
+        border-left: 0;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .summary-card:nth-child(3) {
+        border-top: 1px solid var(--line-soft);
+        border-left: 0;
+      }
+
+      .summary-card:nth-child(4) {
+        border-top: 1px solid var(--line-soft);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar-inner,
+      main,
+      footer {
+        width: min(100% - 24px, 1120px);
+      }
+
+      .topbar-inner {
+        min-height: 62px;
+      }
+
+      .brand span {
+        display: none;
+      }
+
+      .nav {
+        gap: 11px;
+      }
+
+      .nav a {
+        font-size: 12px;
+      }
+
+      main {
+        padding-top: 27px;
+      }
+
+      .intro {
+        display: block;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
+
+      .actions {
+        margin-top: 18px;
+      }
+
+      .actions .button {
+        flex: 1 1 0;
+      }
+
+      .input-panel,
+      .info-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .input-block + .input-block,
+      .info-block + .info-block {
+        border-top: 1px solid var(--line-soft);
+        border-left: 0;
+      }
+
+      .input-block.actions-block {
+        grid-column: auto;
+      }
+
+      .rule-strip,
+      .table-foot {
+        display: block;
+      }
+
+      .rule-equation {
+        display: block;
+        margin-top: 7px;
+        white-space: normal;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .summary-card {
+        padding: 14px 12px;
+      }
+
+      .summary-card strong {
+        font-size: 15px;
+      }
+
+      .section-heading {
+        display: block;
+      }
+
+      .section-heading p {
+        margin-top: 5px;
+      }
+
+      .table-foot span + span {
+        display: block;
+        margin-top: 7px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">矿</div>
+        <div>
+          <strong>矿石平衡价格</strong>
+          <span>按100个一组反推理论价</span>
+        </div>
+      </div>
+      <nav class="nav" aria-label="工具导航">
+        <a href="../haste-calculator/">急速计算器</a>
+        <a href="./" aria-current="page">矿石计算器</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">矿石平衡价格计算器</h1>
+        <p>输入任意一种矿石的“每100个”价格，就能反推出另外三种的理论平衡价；再填入实际售价，可直接看出哪种适合卖出、哪种适合买入。</p>
+      </div>
+      <div class="actions">
+        <button class="button primary" id="exampleButton" type="button">铜 0.4 示例</button>
+        <button class="button" id="resetButton" type="button">↺ 重置</button>
+      </div>
+    </section>
+
+    <section class="input-panel" aria-label="矿石价格输入">
+      <div class="input-block">
+        <label class="label" for="inputItem">已知价格的物品</label>
+        <select id="inputItem">
+          <option value="铜">铜</option>
+          <option value="银">银</option>
+          <option value="金">金</option>
+          <option value="铂金">铂金</option>
+        </select>
+        <small>可选铜、银、金或铂金，作为反推基准。</small>
+      </div>
+
+      <div class="input-block">
+        <label class="label" for="inputPrice">已知价格</label>
+        <div class="control">
+          <input id="inputPrice" type="number" min="0.0001" step="0.0001" inputmode="decimal" value="0.4">
+          <span class="unit">/ 100个</span>
+        </div>
+        <small>例如：铜每100个卖 0.4。</small>
+        <div class="error" id="inputError" role="alert"></div>
+      </div>
+
+      <div class="input-block actions-block">
+        <button class="button primary" id="calculateButton" type="button">计算理论平衡价</button>
+        <button class="button" id="clearActualButton" type="button">清空实际价</button>
+      </div>
+    </section>
+
+    <div class="rule-strip" role="note">
+      <div>
+        <strong>平衡前提</strong>
+        <span>100个为一组；每种原始数量折算后应有相同的整组总价值。</span>
+      </div>
+      <span class="rule-equation">220铜 = 88银 = 44金 = 10铂金</span>
+    </div>
+
+    <section class="summary-grid" aria-label="矿石计算摘要">
+      <div class="summary-card">
+        <span>铜理论价 / 100个</span>
+        <strong class="accent" id="baseCopperPrice">0.4000</strong>
+        <small>反推后的铜基准价</small>
+      </div>
+      <div class="summary-card">
+        <span>平衡整组价值</span>
+        <strong id="bundleValue">0.8800</strong>
+        <small>原始数量折算后的总价值</small>
+      </div>
+      <div class="summary-card">
+        <span>最适合卖出</span>
+        <strong id="bestSell">—</strong>
+        <small id="bestSellHint">填写实际售价后比较</small>
+      </div>
+      <div class="summary-card">
+        <span>最适合买入</span>
+        <strong id="bestBuy">—</strong>
+        <small id="bestBuyHint">填写实际售价后比较</small>
+      </div>
+    </section>
+
+    <section aria-labelledby="table-title">
+      <div class="section-heading">
+        <h2 id="table-title">理论平衡价格</h2>
+        <p>实际售价为可选项；不填时只显示理论换算。</p>
+      </div>
+      <div class="table-panel">
+        <div class="table-scroll">
+          <table>
+            <colgroup>
+              <col style="width: 13%">
+              <col style="width: 12%">
+              <col style="width: 13%">
+              <col style="width: 16%">
+              <col style="width: 14%">
+              <col style="width: 18%">
+              <col style="width: 14%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">物品</th>
+                <th scope="col">组内数量</th>
+                <th scope="col">相对铜倍率</th>
+                <th scope="col">理论价 / 100个</th>
+                <th scope="col">折算价 / 1个</th>
+                <th scope="col">实际售价 / 100个<br>（可选）</th>
+                <th scope="col">判断</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-item="铜">
+                <td><span class="ore-name" data-item="铜">铜</span></td>
+                <td class="muted" data-field="count"></td>
+                <td class="muted" data-field="ratio"></td>
+                <td class="theoretical" data-field="theoretical"></td>
+                <td class="muted" data-field="unit"></td>
+                <td class="actual-cell"><input id="actual-copper" type="number" min="0.0001" step="0.0001" inputmode="decimal" placeholder="输入实际价"></td>
+                <td><span class="status" data-field="status">基准输入</span></td>
+              </tr>
+              <tr data-item="银">
+                <td><span class="ore-name" data-item="银">银</span></td>
+                <td class="muted" data-field="count"></td>
+                <td class="muted" data-field="ratio"></td>
+                <td class="theoretical" data-field="theoretical"></td>
+                <td class="muted" data-field="unit"></td>
+                <td class="actual-cell"><input id="actual-silver" type="number" min="0.0001" step="0.0001" inputmode="decimal" placeholder="输入实际价"></td>
+                <td><span class="status" data-field="status">待输入实际价</span></td>
+              </tr>
+              <tr data-item="金">
+                <td><span class="ore-name" data-item="金">金</span></td>
+                <td class="muted" data-field="count"></td>
+                <td class="muted" data-field="ratio"></td>
+                <td class="theoretical" data-field="theoretical"></td>
+                <td class="muted" data-field="unit"></td>
+                <td class="actual-cell"><input id="actual-gold" type="number" min="0.0001" step="0.0001" inputmode="decimal" placeholder="输入实际价"></td>
+                <td><span class="status" data-field="status">待输入实际价</span></td>
+              </tr>
+              <tr data-item="铂金">
+                <td><span class="ore-name" data-item="铂金">铂金</span></td>
+                <td class="muted" data-field="count"></td>
+                <td class="muted" data-field="ratio"></td>
+                <td class="theoretical" data-field="theoretical"></td>
+                <td class="muted" data-field="unit"></td>
+                <td class="actual-cell"><input id="actual-platinum" type="number" min="0.0001" step="0.0001" inputmode="decimal" placeholder="输入实际价"></td>
+                <td><span class="status" data-field="status">待输入实际价</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-foot">
+          <span>实际售价 &gt; 理论价：对卖家更赚；实际售价 &lt; 理论价：对买家更划算。</span>
+          <span id="comparisonHint">已比较 1 / 4 种物品</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-panel" aria-label="计算说明">
+      <div class="info-block">
+        <h3>怎么算出来？</h3>
+        <p>先用“已知价格 ÷ 相对铜倍率”得到铜的理论价，再乘回每种物品的倍率。例如铜为 0.4，则银 = 0.4 × 2.5 = 1.0，金 = 0.4 × 5 = 2.0，铂金 = 0.4 × 22 = 8.8。</p>
+      </div>
+      <div class="info-block">
+        <h3>怎么判断赚亏？</h3>
+        <p>理论价只代表平衡基准，不是交易所的真实售价。把市场实际价填到表格后，页面会把高于理论价的标成“卖出更高”，低于理论价的标成“买入更划算”。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    计算前提来自你提供的物品数量与倍率：铜 220、银 88、金 44、铂金 10；价格单位统一为每100个。实际交易规则变化时请以最新数据为准。
+  </footer>
+
+  <script type="module">
+    import { calculateBalance, ITEMS } from "./calculator.js";
+
+    const STORAGE_KEY = "ore-balance-calculator-v1";
+    const itemKeys = Object.keys(ITEMS);
+    const itemInputIds = {
+      铜: "actual-copper",
+      银: "actual-silver",
+      金: "actual-gold",
+      铂金: "actual-platinum"
+    };
+    const inputItem = document.getElementById("inputItem");
+    const inputPrice = document.getElementById("inputPrice");
+    const inputError = document.getElementById("inputError");
+    const rows = Array.from(document.querySelectorAll("tr[data-item]"));
+
+    function formatPrice(value) {
+      return new Intl.NumberFormat("zh-CN", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 4
+      }).format(value);
+    }
+
+    function formatSignedPrice(value) {
+      const sign = value > 0 ? "+" : "";
+      return sign + formatPrice(value);
+    }
+
+    function formatPercent(value) {
+      const sign = value > 0 ? "+" : "";
+      return sign + (value * 100).toFixed(2) + "%";
+    }
+
+    function actualPrices() {
+      return Object.fromEntries(itemKeys.map((name) => [
+        name,
+        document.getElementById(itemInputIds[name]).value
+      ]));
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          inputItem: inputItem.value,
+          inputPrice: inputPrice.value,
+          actualPrices: actualPrices()
+        }));
+      } catch (_) {
+        // Local persistence is optional.
+      }
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && itemKeys.includes(saved.inputItem)) {
+          inputItem.value = saved.inputItem;
+          inputPrice.value = saved.inputPrice || "0.4";
+          itemKeys.forEach((name) => {
+            const value = saved.actualPrices && saved.actualPrices[name];
+            if (value !== undefined && value !== null && value !== "") {
+              document.getElementById(itemInputIds[name]).value = value;
+            }
+          });
+        }
+      } catch (_) {
+        // Use defaults when storage is unavailable or invalid.
+      }
+    }
+
+    function setStatus(element, status, text) {
+      element.className = "status " + status;
+      element.textContent = text;
+    }
+
+    function updateSelectedActualInput() {
+      itemKeys.forEach((name) => {
+        const actualInput = document.getElementById(itemInputIds[name]);
+        const isBase = name === inputItem.value;
+        actualInput.disabled = isBase;
+        if (isBase) {
+          actualInput.value = inputPrice.value;
+        }
+      });
+    }
+
+    function render() {
+      inputError.textContent = "";
+      try {
+        updateSelectedActualInput();
+        const result = calculateBalance(inputItem.value, inputPrice.value, actualPrices());
+
+        rows.forEach((row) => {
+          const name = row.dataset.item;
+          const data = result.rows[name];
+          row.querySelector('[data-field="count"]').textContent = data.count;
+          row.querySelector('[data-field="ratio"]').textContent = "×" + formatPrice(data.ratio);
+          row.querySelector('[data-field="theoretical"]').textContent = formatPrice(data.theoreticalPrice);
+          row.querySelector('[data-field="unit"]').textContent = formatPrice(data.unitPrice);
+          const status = row.querySelector('[data-field="status"]');
+
+          if (data.status === "sell") {
+            setStatus(status, "sell", "卖出更高 " + formatSignedPrice(data.delta));
+          } else if (data.status === "buy") {
+            setStatus(status, "buy", "买入更划算 " + formatPrice(Math.abs(data.delta)));
+          } else if (data.status === "balanced") {
+            setStatus(status, "balanced", "价格平衡");
+          } else {
+            setStatus(status, "", name === result.inputItem ? "基准输入" : "待输入实际价");
+          }
+        });
+
+        document.getElementById("baseCopperPrice").textContent = formatPrice(result.baseCopperPrice);
+        document.getElementById("bundleValue").textContent = formatPrice(result.rows.铜.bundleValue);
+        document.getElementById("bestSell").textContent = result.bestSell || "—";
+        document.getElementById("bestBuy").textContent = result.bestBuy || "—";
+        document.getElementById("bestSellHint").textContent = result.bestSell
+          ? "实际价相对理论价溢价最高"
+          : "填写高于理论价的实际售价";
+        document.getElementById("bestBuyHint").textContent = result.bestBuy
+          ? "实际价相对理论价折价最大"
+          : "填写低于理论价的实际售价";
+        document.getElementById("comparisonHint").textContent = "已比较 " + result.comparedCount + " / 4 种物品";
+        saveState();
+      } catch (error) {
+        inputError.textContent = error.message;
+      }
+    }
+
+    function setExample() {
+      inputItem.value = "铜";
+      inputPrice.value = "0.4";
+      render();
+    }
+
+    function reset() {
+      inputItem.value = "铜";
+      inputPrice.value = "0.4";
+      itemKeys.forEach((name) => {
+        document.getElementById(itemInputIds[name]).value = "";
+      });
+      render();
+    }
+
+    function clearActual() {
+      itemKeys.forEach((name) => {
+        document.getElementById(itemInputIds[name]).value = "";
+      });
+      render();
+    }
+
+    document.getElementById("exampleButton").addEventListener("click", setExample);
+    document.getElementById("resetButton").addEventListener("click", reset);
+    document.getElementById("clearActualButton").addEventListener("click", clearActual);
+    document.getElementById("calculateButton").addEventListener("click", render);
+    inputItem.addEventListener("change", render);
+    inputPrice.addEventListener("input", render);
+    itemKeys.forEach((name) => {
+      document.getElementById(itemInputIds[name]).addEventListener("input", render);
+    });
+
+    loadState();
+    render();
+  </script>
+</body>
+</html>
