@@ -118,7 +118,7 @@ export function calculateBalance(inputItem, inputPrice, actualPrices = {}, quant
         count,
         ratio: quantities.铜 / count,
         theoreticalPrice,
-        unitPrice: theoreticalPrice / 100,
+        unitPrice: theoreticalPrice * 4 / 100,
         bundleValue: theoreticalPrice * count / 100,
         actualPrice,
         delta,
