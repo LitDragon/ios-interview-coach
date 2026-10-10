@@ -104,7 +104,6 @@ export function calculateBalance(inputItem, inputPrice, actualPrices = {}, quant
     Object.entries(ITEMS).map(([name]) => {
       const count = quantities[name];
       const theoreticalPrice = baseCopperPrice * quantities.铜 / count;
-      const quantityMultiplier = count / quantities.铜;
       const actualPrice = readActualPrice(actualPrices, name);
       const delta = actualPrice === null ? null : actualPrice - theoreticalPrice;
       let status = "unknown";
@@ -119,7 +118,7 @@ export function calculateBalance(inputItem, inputPrice, actualPrices = {}, quant
         count,
         ratio: quantities.铜 / count,
         theoreticalPrice,
-        unitPrice: theoreticalPrice * quantityMultiplier,
+        unitPrice: count * 4 * theoreticalPrice / 100,
         bundleValue: theoreticalPrice * count / 100,
         actualPrice,
         delta,
