@@ -105,6 +105,7 @@ export function calculateBalance(inputItem, inputPrice, actualPrices = {}, quant
       const count = quantities[name];
       const theoreticalPrice = baseCopperPrice * quantities.铜 / count;
       const actualPrice = readActualPrice(actualPrices, name);
+      const ticketSourcePrice = actualPrice ?? theoreticalPrice;
       const delta = actualPrice === null ? null : actualPrice - theoreticalPrice;
       let status = "unknown";
 
@@ -118,7 +119,7 @@ export function calculateBalance(inputItem, inputPrice, actualPrices = {}, quant
         count,
         ratio: quantities.铜 / count,
         theoreticalPrice,
-        unitPrice: count * 4 * theoreticalPrice / 100,
+        unitPrice: count * 4 * ticketSourcePrice / 100,
         bundleValue: theoreticalPrice * count / 100,
         actualPrice,
         delta,
