@@ -21,6 +21,19 @@ assert.equal(copper.rows.银.bundleValue, 0.88);
 assert.equal(copper.rows.金.bundleValue, 0.88);
 assert.equal(copper.rows.铂金.bundleValue, 0.88);
 
+for (const [item, price, expected] of [
+  ["铜", 0.56, 8.4],
+  ["银", 1.4, 8.4],
+  ["金", 3, 9],
+  ["铂金", 11.05, 8.398]
+]) {
+  const actualPrices = { 铜: 0.6, 银: 10, [item]: price };
+  const { rows } = calculateBalance(item, price, actualPrices, { copperCount: 375 });
+  for (const [name, row] of Object.entries(rows)) {
+    assert.equal(Number(row.unitPrice.toFixed(4)), expected, `用${item}定价时${name}的两张票价`);
+  }
+}
+
 const fromGold = calculateBalance("金", 2, {}, { copperCount: 220 });
 assert.equal(fromGold.rows.铜.theoreticalPrice, 0.4);
 assert.equal(fromGold.rows.铂金.theoreticalPrice, 8.8);

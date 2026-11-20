@@ -861,7 +861,7 @@
     <section aria-labelledby="table-title">
       <div class="section-heading">
         <h2 id="table-title">理论平衡价格</h2>
-        <p>实际售价为可选项；不填时只显示理论换算。</p>
+        <p>两张票价 = 组内数量 × 4 ÷ 100 × 该物品的理论价。填写实际售价可比较买卖差价。</p>
       </div>
       <div class="table-panel">
         <div class="table-scroll">
@@ -946,11 +946,11 @@
   </main>
 
   <footer>
-    计算前提：银数量 = 铜数量 × 0.4，金数量 = 铜数量 × 0.2；铂金采用游戏内校准点估算（310→14、330→15、355→17、375→19），也可手动修改。价格单位统一为每100个。
+    计算前提：银数量 = 铜数量 × 0.4，金数量 = 铜数量 × 0.2；铂金采用游戏内校准点估算（310→14、330→15、355→17、375→19），也可手动修改。理论价和实际售价均按每100个计。
   </footer>
 
   <script type="module">
-    import { calculateBalance, DEFAULT_QUANTITY_OPTIONS, ITEMS, resolveQuantities } from "./calculator.js?v=7";
+    import { calculateBalance, DEFAULT_QUANTITY_OPTIONS, ITEMS, resolveQuantities } from "./calculator.js?v=8";
 
     const STORAGE_KEY = "ore-balance-calculator-v2";
     const itemKeys = Object.keys(ITEMS);
